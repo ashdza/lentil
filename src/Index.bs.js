@@ -5,6 +5,6 @@ var ReactDOMRe = require("reason-react/src/ReactDOMRe.js");
 var ReasonReact = require("reason-react/src/ReasonReact.js");
 var Song$ReactTemplate = require("./Song.bs.js");
 
-ReactDOMRe.renderToElementWithId(ReasonReact.element(undefined, undefined, Song$ReactTemplate.Demo[/* make */1](/* array */[])), "body");
+ReactDOMRe.renderToElementWithId(ReasonReact.element(undefined, undefined, Song$ReactTemplate.Demo[/* make */2](/* array */[])), "body");
 
 /*  Not a pure module */
