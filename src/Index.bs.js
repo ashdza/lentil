@@ -3,17 +3,8 @@
 
 var ReactDOMRe = require("reason-react/src/ReactDOMRe.js");
 var ReasonReact = require("reason-react/src/ReasonReact.js");
-var Top$ReactTemplate = require("./Top.bs.js");
+var Song$ReactTemplate = require("./Song.bs.js");
 
-ReactDOMRe.renderToElementWithId(ReasonReact.element(undefined, undefined, Top$ReactTemplate.make(/* :: */[
-              0,
-              /* :: */[
-                5,
-                /* :: */[
-                  25,
-                  /* [] */0
-                ]
-              ]
-            ], /* array */[])), "body");
+ReactDOMRe.renderToElementWithId(ReasonReact.element(undefined, undefined, Song$ReactTemplate.Demo[/* make */1](/* array */[])), "body");
 
 /*  Not a pure module */

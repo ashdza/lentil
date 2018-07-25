@@ -1,1 +1,1 @@
-ReactDOMRe.renderToElementWithId(<Top initCounts=[0, 5, 25] />, "body");
+ReactDOMRe.renderToElementWithId(<Song.Demo />, "body");
