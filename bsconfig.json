@@ -7,14 +7,19 @@
   "reason": {
     "react-jsx": 2
   },
-  "sources": {
-    "dir" : "src",
-    "subdirs" : true
+  "warnings": {
+    "error": "+8"
   },
-  "package-specs": [{
-    "module": "commonjs",
-    "in-source": true
-  }],
+  "sources": {
+    "dir": "src",
+    "subdirs": true
+  },
+  "package-specs": [
+    {
+      "module": "commonjs",
+      "in-source": true
+    }
+  ],
   "suffix": ".bs.js",
   "namespace": true,
   "bs-dependencies": [
