@@ -1,1 +1,4 @@
-ReactDOMRe.renderToElementWithId(<Song.Demo />, "body");
+[%%debugger.chrome];
+
+/* ReactDOMRe.renderToElementWithId(<Song.Demo />, "target"); */
+ReactDOMRe.renderToElementWithId(<SongList.Demo />, "target");

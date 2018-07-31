@@ -1,3 +1,5 @@
+[%%debugger.chrome];
+
 type point =
   | Point(float, float);
 
