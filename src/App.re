@@ -1,43 +1,56 @@
 [%%debugger.chrome];
 
-type status =
-  | Playing
-  | Paused;
+module Player = ReReactPlayer.Player;
+
+type current =
+  | Playing(Types.song, float)
+  | Neutral;
 
 type state = {
-  song: Types.song,
-  time: Types.secs,
-  status,
+  songList: Types.songList,
+  current,
 };
 
 type action =
-  | Play
-  | Pause
-  | SetTime(Types.secs);
+  | Select(Types.song)
+  | UpdateProgress(float);
 
-let component = ReasonReact.reducerComponent("Player");
+let component = ReasonReact.reducerComponent("App");
 
-let make = (~song: Types.song, ~time: Types.secs, _children) => {
+let make = (~songList: Types.songList, _children) => {
   ...component,
-  initialState: () => {time, song, status: Paused},
+  initialState: () => {songList, current: Neutral},
   reducer: (action: action, state: state) =>
-    switch (action) {
-    | Play => ReasonReact.Update({...state, status: Playing})
-    | Pause => ReasonReact.Update({...state, status: Paused})
-    | SetTime(t) => ReasonReact.Update({...state, time: state.time + t})
+    switch (action, state) {
+    | (Select(newSong), _) =>
+      ReasonReact.Update({...state, current: Playing(newSong, 0.0)})
+    | (UpdateProgress(playedSec), {current: Playing(s, _p)}) =>
+      ReasonReact.Update({...state, current: Playing(s, playedSec)})
+    | (UpdateProgress(_), _) =>
+      Js.log("ERROR: UPDATE PROGRESS WHILE NO SONG PLAYING");
+      ReasonReact.NoUpdate;
     },
   render: self =>
     <div>
-      <Util.Button label="Play" onClick=(_event => self.send(Play)) />
-      <Util.Button label="Pause" onClick=(_event => self.send(Pause)) />
-      <Util.Button
-        label="Plus 10"
-        onClick=(_event => self.send(SetTime(10)))
+      <SongList
+        songList
+        onSongSelect=((s: Types.song) => self.send(Select(s)))
       />
-      <Util.Button
-        label="Minus 10"
-        onClick=(_event => self.send(SetTime(-10)))
-      />
-      <Util.Text label=(string_of_int(self.state.time)) />
+      (
+        switch (self.state.current) {
+        | Playing(s, p) =>
+          <div>
+            <Player
+              url=s.url
+              onProgress=(
+                (progress: Player.progress) =>
+                  self.send(UpdateProgress(progress.playedSeconds))
+              )
+            />
+            <Util.Text label=(string_of_float(p)) />
+          </div>
+        | Neutral => ReasonReact.null
+        }
+      )
     </div>,
 };

@@ -9,12 +9,6 @@ let make = (~song: Types.song, _children) => {
       <div> (Util.str("Title: " ++ song.title)) </div>
       <div> (Util.str("Artist: " ++ song.artist)) </div>
       <div> (Util.str("URL: " ++ song.url)) </div>
-      <ReReactPlayer.Player
-        url=song.url
-        onPlay=(() => Js.log("Play"))
-        onPause=(() => Js.log("Pause"))
-        onProgress=(t => Js.log2("Progress", t))
-      />
     </div>,
 };
 
