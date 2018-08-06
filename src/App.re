@@ -2,9 +2,16 @@
 
 module Player = ReReactPlayer.Player;
 
-type current =
-  | Playing(Types.song, float)
-  | Neutral;
+type songInProgress = {
+  song: Types.song,
+  prog: float,
+};
+
+type option('a) =
+  | None
+  | Some('a);
+
+type current = option(songInProgress);
 
 type state = {
   songList: Types.songList,
@@ -19,13 +26,23 @@ let component = ReasonReact.reducerComponent("App");
 
 let make = (~songList: Types.songList, _children) => {
   ...component,
-  initialState: () => {songList, current: Neutral},
+  initialState: () => {songList, current: None},
   reducer: (action: action, state: state) =>
     switch (action, state) {
     | (Select(newSong), _) =>
-      ReasonReact.Update({...state, current: Playing(newSong, 0.0)})
-    | (UpdateProgress(playedSec), {current: Playing(s, _p)}) =>
-      ReasonReact.Update({...state, current: Playing(s, playedSec)})
+      ReasonReact.Update({
+        ...state,
+        current: Some({song: newSong, prog: 0.0}),
+      })
+    | (
+        UpdateProgress(playedSec),
+        {songList: _sl, current: Some({song: s, prog: p})},
+      ) =>
+      Js.log2(playedSec, p);
+      ReasonReact.Update({
+        ...state,
+        current: Some({song: s, prog: playedSec}),
+      });
     | (UpdateProgress(_), _) =>
       Js.log("ERROR: UPDATE PROGRESS WHILE NO SONG PLAYING");
       ReasonReact.NoUpdate;
@@ -38,18 +55,18 @@ let make = (~songList: Types.songList, _children) => {
       />
       (
         switch (self.state.current) {
-        | Playing(s, p) =>
+        | Some({song: s, prog: p}) =>
           <div>
             <Player
               url=s.url
               onProgress=(
-                (progress: Player.progress) =>
-                  self.send(UpdateProgress(progress.playedSeconds))
+                (progress: Player.secs) =>
+                  self.send(UpdateProgress(progress))
               )
             />
             <Util.Text label=(string_of_float(p)) />
           </div>
-        | Neutral => ReasonReact.null
+        | None => ReasonReact.null
         }
       )
     </div>,

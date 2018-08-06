@@ -8,7 +8,8 @@ let make =
   render: _self => {
     let songl =
       List.map(
-        s =>
+        /* map shows error but app compiles correctly */
+        (s: Types.song) =>
           <div>
             <Song song=s />
             <Util.Button label="Select" onClick=(_ev => onSongSelect(s)) />
