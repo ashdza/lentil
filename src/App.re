@@ -49,6 +49,7 @@ let make = (~songList: Types.songList, _children) => {
     },
   render: self =>
     <div>
+      <h1> (Util.str("Lentil")) </h1>
       <SongList
         songList
         onSongSelect=((s: Types.song) => self.send(Select(s)))

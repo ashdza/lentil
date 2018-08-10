@@ -7,14 +7,11 @@ let make =
   ...comp,
   render: _self => {
     let songl =
-      List.map(
-        /* map shows error but app compiles correctly */
-        (s: Types.song) =>
-          <div>
-            <Song song=s />
-            <Util.Button label="Select" onClick=(_ev => onSongSelect(s)) />
-          </div>,
-        songList,
+      Belt.List.map(songList, (s: Types.song) =>
+        <div>
+          <Song song=s />
+          <Util.Button label="Select" onClick=(_ev => onSongSelect(s)) />
+        </div>
       )
       |> Array.of_list
       |> ReasonReact.array;
