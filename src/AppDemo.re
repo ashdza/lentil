@@ -5,6 +5,7 @@ let songList: list(Types.song) = [
     title: "Sunday Morning",
     artist: "Maroon 5",
     url: "https://soundcloud.com/maroon-5/sunday-morning",
+    comments: [],
   },
 ];
 

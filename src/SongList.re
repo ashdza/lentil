@@ -23,7 +23,7 @@ module Demo = {
   let comp = ReasonReact.statelessComponent("demo");
   let songList: list(Types.song) = [
     Song.Demo.song,
-    {title: "Sunday Morning", artist: "Maroon 5", url: "fghij"},
+    {title: "Sunday Morning", artist: "Maroon 5", url: "fghij", comments: []},
   ];
   let make = _children => {
     ...comp,
