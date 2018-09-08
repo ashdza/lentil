@@ -23,6 +23,7 @@ let make = (~song: Types.song, _children) => {
 module Demo = {
   let comp = ReasonReact.statelessComponent("demo");
   let song: Types.song = {
+    id: 1,
     title: "Young and Beautiful Love",
     artist: "Ashley D'Souza",
     url: "https://soundcloud.com/ashley-dsouza-106423765/young-and-beautiful-love",

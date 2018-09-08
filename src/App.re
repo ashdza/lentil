@@ -25,9 +25,20 @@ type action =
 
 let component = ReasonReact.reducerComponent("App");
 
-let make = (~songList: Types.songList, _children) => {
+let addFeedbackToSong =
+    (
+      comment: Types.comment,
+      location: Types.feedbackLocation,
+      song: Types.song,
+    )
+    : Types.song => {
+  let newFeedback: Types.feedback = {location, comment};
+  {...song, comments: Belt.List.add(song.comments, newFeedback)};
+};
+
+let make = (~initialSongList: Types.songList, _children) => {
   ...component,
-  initialState: () => {songList, current: None},
+  initialState: () => {songList: initialSongList, current: None},
   reducer: (action: action, state: state) =>
     switch (action, state) {
     | (Select(newSong), _) =>
@@ -49,15 +60,27 @@ let make = (~songList: Types.songList, _children) => {
       ReasonReact.NoUpdate;
     | (
         LeaveComment,
-        {songList: _sl, current: Some({song: s, prog: p, text: t})},
+        {songList: sl, current: Some({song: s, prog: p, text: t})},
       ) =>
-      let newFeedback: Types.feedback = {
-        location: Exact(p),
-        comment: Text(t),
+      let updatedSong = addFeedbackToSong(t, p, s);
+      Js.log(updatedSong);
+      let updatedState = {
+        let updatedSongList: Types.songList =
+          List.map(
+            s' =>
+              if (s'.Types.id != s.Types.id) {
+                s';
+              } else {
+                updatedSong;
+              },
+            sl,
+          );
+        {
+          songList: updatedSongList,
+          current: Some({song: updatedSong, prog: p, text: t}),
+        };
       };
-      let newComments = Belt.List.add(s.comments, newFeedback);
-      Js.log(s);
-      ReasonReact.SideEffects((_ => s.comments = newComments));
+      ReasonReact.Update(updatedState);
     | (LeaveComment, _state) =>
       Js.log("ERROR: LEAVE COMMENT WHILE NO SONG PLAYING");
       ReasonReact.NoUpdate;
@@ -77,7 +100,7 @@ let make = (~songList: Types.songList, _children) => {
     <div>
       <h1 className="title is-1"> (Util.str("Lentil")) </h1>
       <SongList
-        songList
+        songList=self.state.songList
         onSongSelect=((s: Types.song) => self.send(Select(s)))
       />
       (

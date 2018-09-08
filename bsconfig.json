@@ -1,5 +1,5 @@
 {
-  "name": "react-template",
+  "name": "lentil",
   "bsc-flags": [
     "-bs-no-version-header",
     "-bs-super-errors",
@@ -22,7 +22,7 @@
     }
   ],
   "suffix": ".bs.js",
-  "namespace": true,
+  "namespace": false,
   "bs-dependencies": [
     "reason-react",
     "re-react-player"

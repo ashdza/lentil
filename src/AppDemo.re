@@ -2,6 +2,7 @@ let comp = ReasonReact.statelessComponent("demo");
 let songList: list(Types.song) = [
   Song.Demo.song,
   {
+    id: 3,
     title: "Sunday Morning",
     artist: "Maroon 5",
     url: "https://soundcloud.com/maroon-5/sunday-morning",
@@ -9,4 +10,7 @@ let songList: list(Types.song) = [
   },
 ];
 
-let make = _children => {...comp, render: _self => <App songList />};
+let make = _children => {
+  ...comp,
+  render: _self => <App initialSongList=songList />,
+};
