@@ -1,5 +1,7 @@
 # lentl
 
+A musician's feedback service.
+
 ## Run Project
 
 ```sh
