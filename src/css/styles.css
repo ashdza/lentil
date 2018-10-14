@@ -1,3 +1,18 @@
+.app {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-gap: 3px;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: 
+        "header     header"
+        "menu       contents";
+}
+
+.app-header {grid-area: header; text-align: center };
+.app-menu {grid-area: menu};
+.app-contents {grid-area: contents};
 
 .song-grid {
     height: 100%;
@@ -11,18 +26,10 @@
         "song-editor    song-comments";
 }
 
-.song-header {
-    grid-area: song-header;
-}
+.song-header { grid-area: song-header; }
 
-.song-player {
-    grid-area: song-player;
-}
+.song-player {    grid-area: song-player;}
 
-.song-editor {
-    grid-area: song-editor;
-}
+.song-editor {    grid-area: song-editor;}
 
-.song-comments {
-    grid-area: song-comments;
-}
+.song-comments {    grid-area: song-comments;}

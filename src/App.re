@@ -144,14 +144,24 @@ let make = (~initialSongs: Types.songList, _children) => {
       ReasonReact.NoUpdate;
     },
   render: self =>
-    <div>
-      <div className=Styles.appTitle> (Util.str("Lentil")) </div>
-      <SongList
-        songList=self.state.songList
-        onSongSelect=((s: Types.song) => self.send(Select(s)))
-        customRender=(
-          renderPlayerIfCurrentSong(self.state.current, self.send)
-        )
-      />
+    <div className="app">
+      <div className=Styles.(appTitle ++ " app-header")>
+        (Util.str("Lentil"))
+      </div>
+      <div className="app-menu">
+        <Util.Text label="MENU (placeholder)" />
+        <Util.Text label="Perform" />
+        <Util.Text label="Review" />
+        <Util.Text label="Settings" />
+      </div>
+      <div className="app-content">
+        <SongList
+          songList=self.state.songList
+          onSongSelect=((s: Types.song) => self.send(Select(s)))
+          customRender=(
+            renderPlayerIfCurrentSong(self.state.current, self.send)
+          )
+        />
+      </div>
     </div>,
 };
