@@ -3,11 +3,6 @@
     "type": "static",
     "alias": "lentil.7insights.com",
     "static": {
-        "rewrites": [
-            {
-                "source": "**",
-                "destination": "build/index.html"
-            }
-        ]
+        "public": "build"
     }
 }
