@@ -2,6 +2,19 @@
 
 let str = ReasonReact.string;
 
+let tap = x => {
+  Js.log(x);
+  x;
+};
+let tap2 = (x, y) => {
+  Js.log2(x, y);
+  y;
+};
+let tap3 = (x, y, z) => {
+  Js.log3(x, y, z);
+  z;
+};
+
 module Button = {
   let component = ReasonReact.statelessComponent("Button");
 

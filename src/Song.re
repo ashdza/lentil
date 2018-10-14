@@ -2,10 +2,16 @@
 
 let comp = ReasonReact.statelessComponent("song");
 
-let make = (~song: Types.song, _children) => {
+let nullRend = _ => ReasonReact.null;
+
+let make = (~song: Types.song, ~render=nullRend, _children) => {
   ...comp,
-  render: _self =>
-    <div className="card">
+  render: _self => {
+    Js.log2(
+      "Song:render: " ++ song.title,
+      "Comments len: " ++ (List.length(song.comments) |> string_of_int),
+    );
+    <div className=Styles.song>
       <div> (Util.str("Title: " ++ song.title)) </div>
       <div> (Util.str("Artist: " ++ song.artist)) </div>
       <div> (Util.str("URL: " ++ song.url)) </div>
@@ -16,8 +22,10 @@ let make = (~song: Types.song, _children) => {
             ++ string_of_int(Belt.List.length(song.comments)),
           )
         )
+        (render(song))
       </div>
-    </div>,
+    </div>;
+  },
 };
 
 module Demo = {

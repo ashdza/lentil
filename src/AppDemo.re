@@ -1,5 +1,7 @@
+[%%debugger.chrome];
+
 let comp = ReasonReact.statelessComponent("demo");
-let songList: list(Types.song) = [
+let initialSongs: list(Types.song) = [
   Song.Demo.song,
   {
     id: 3,
@@ -10,7 +12,4 @@ let songList: list(Types.song) = [
   },
 ];
 
-let make = _children => {
-  ...comp,
-  render: _self => <App initialSongList=songList />,
-};
+let make = _children => {...comp, render: _self => <App initialSongs />};

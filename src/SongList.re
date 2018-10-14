@@ -6,16 +6,21 @@ let make =
     (~songList: Types.songList, ~onSongSelect: Types.song => unit, _children) => {
   ...comp,
   render: _self => {
+    Js.log("SongList:render");
     let songl =
       Belt.List.map(songList, (s: Types.song) =>
-        <div>
-          <Song song=s />
-          <Util.Button label="Select" onClick=(_ev => onSongSelect(s)) />
-        </div>
+        <Song
+          key=(s.id |> string_of_int)
+          song=s
+          render=(
+            _s =>
+              <Util.Button label="Select" onClick=(_ev => onSongSelect(s)) />
+          )
+        />
       )
       |> Array.of_list
       |> ReasonReact.array;
-    <div> songl </div>;
+    songl;
   },
 };
 
