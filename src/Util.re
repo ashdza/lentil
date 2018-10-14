@@ -34,3 +34,19 @@ module Text = {
     render: _self => <div className=style> (str(label)) </div>,
   };
 };
+
+/* Experiments */
+
+let a = s => <div> (str(s)) </div>;
+
+let b = (s1, s2) => <div> ...[|a(s1), a(s2)|] </div>;
+
+let c = (l: list((string, string))) =>
+  <div>
+    (
+      l
+      |> List.map(((x, y)) => b(x, y))
+      |> Array.of_list
+      |> ReasonReact.array
+    )
+  </div>;

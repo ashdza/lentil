@@ -1,5 +1,19 @@
 open Css;
 
+/* css class names from external stylesheet */
+
+let songGrid = "song-grid";
+
+let songHeader = "song-header";
+
+let songPlayer = "song-player";
+
+let songEditor = "song-editor";
+
+let songComments = "song-comments";
+
+/* bs-css styles */
+
 let none = style(empty);
 
 let appTitle = style([fontSize(rem(1.5)), color(darkgrey)]);
