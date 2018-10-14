@@ -20,9 +20,9 @@ let ignoreRender = _ => ReasonReact.null;
 module Button = {
   let component = ReasonReact.statelessComponent("Button");
 
-  let make = (~label, ~onClick, _children) => {
+  let make = (~label, ~onClick, ~disabled=false, _children) => {
     ...component,
-    render: _self => <button onClick> (str(label)) </button>,
+    render: _self => <button onClick disabled> (str(label)) </button>,
   };
 };
 

@@ -64,8 +64,9 @@ let renderCurrentSong = (self: selfType, s2: Types.song) =>
         )
       />
       <Util.Button
-        label="submit"
+        label="Comment"
         onClick=(_event => self.send(LeaveComment))
+        disabled=(t == "")
       />
     </div>
   | _ => ReasonReact.null
