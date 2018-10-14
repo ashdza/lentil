@@ -52,7 +52,9 @@ let renderCurrentSong = (self: selfType, s2: Types.song) =>
         progressInterval=100
       />
       <Util.Text label=("Position: " ++ string_of_float(p)) />
-      <input
+      <textarea
+        cols=80
+        rows=5
         value=t
         onChange=(
           ev => {
