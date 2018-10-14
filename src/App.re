@@ -51,8 +51,8 @@ module CommentsRoll = {
   let make = (~inProgress: songInProgress, _children) => {
     ...component,
     render: _self =>
-      <div>
-        <Util.Text label="Comments Roll" />
+      <div className=Styles.commentsRoll>
+        <Util.Text label="Rolling Comments ..." />
         (
           inProgress.song.comments
           |. dropWhile(c => c.location < inProgress.prog)
@@ -77,19 +77,15 @@ let renderPlayerIfCurrentSong = (current, send, song: Types.song) =>
       />
       <Util.Text label=("Position: " ++ string_of_float(p)) />
       <CommentsRoll inProgress />
+      <Util.Text label="Edit Comment" />
       <textarea
         cols=80
         rows=5
         value=t
-        onChange=(
-          ev => {
-            let newText = ReactEvent.Form.target(ev)##value;
-            send(TextChange(newText));
-          }
-        )
+        onChange=(ev => send(TextChange(ReactEvent.Form.target(ev)##value)))
       />
       <Util.Button
-        label="Comment"
+        label="Submit"
         onClick=(_event => send(LeaveComment))
         disabled=(t == "")
       />

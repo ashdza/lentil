@@ -13,6 +13,8 @@ let song =
     boxShadow(~y=px(3), ~blur=px(5), rgba(0, 0, 0, 0.6)),
   ]);
 
+let commentsRoll = style([backgroundColor(linen)]);
+
 let clickable = style([cursor(`pointer)]);
 
 let title = style([backgroundColor(papayawhip), alignItems(`center)]);
