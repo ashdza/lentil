@@ -39,9 +39,34 @@ let addFeedbackToSong = (comment, loc, song: Types.song) => {
   };
 };
 
+module CommentsRoll = {
+  let component = ReasonReact.statelessComponent("Comments");
+
+  let rec dropWhile = (list, pred) =>
+    switch (list) {
+    | [] => []
+    | [h, ...tl] => ! pred(h) ? list : dropWhile(tl, pred)
+    };
+
+  let make = (~inProgress: songInProgress, _children) => {
+    ...component,
+    render: _self =>
+      <div>
+        <Util.Text label="Comments Roll" />
+        (
+          inProgress.song.comments
+          |. dropWhile(c => c.location < inProgress.prog)
+          |> List.map(c => <Util.Text label=c.Types.comment />)
+          |> Array.of_list
+          |> ReasonReact.array
+        )
+      </div>,
+  };
+};
+
 let renderPlayerIfCurrentSong = (current, send, song: Types.song) =>
   switch (current) {
-  | Some({song: s, prog: p, text: t}) when s.id == song.id =>
+  | Some({song: s, prog: p, text: t} as inProgress) when s.id == song.id =>
     <div className=Styles.playerEditor>
       <Player
         url=s.url
@@ -51,6 +76,7 @@ let renderPlayerIfCurrentSong = (current, send, song: Types.song) =>
         progressInterval=100
       />
       <Util.Text label=("Position: " ++ string_of_float(p)) />
+      <CommentsRoll inProgress />
       <textarea
         cols=80
         rows=5

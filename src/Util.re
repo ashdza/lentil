@@ -29,8 +29,8 @@ module Button = {
 module Text = {
   let component = ReasonReact.statelessComponent("Text");
 
-  let make = (~label, _children) => {
+  let make = (~label, ~style=Styles.none, _children) => {
     ...component,
-    render: _self => <div> (str(label)) </div>,
+    render: _self => <div className=style> (str(label)) </div>,
   };
 };
