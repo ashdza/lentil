@@ -8,10 +8,6 @@ type songInProgress = {
   text: string,
 };
 
-type option('a) =
-  | None
-  | Some('a);
-
 type state = {
   songList: Types.songList,
   current: option(songInProgress),
@@ -38,16 +34,14 @@ let addFeedbackToSong = (comment, loc, song: Types.song) => {
   {...song, comments: Belt.List.add(song.comments, c)};
 };
 
-type selfType = ReasonReact.self(state, ReasonReact.noRetainedProps, action);
-
-let renderCurrentSong = (self: selfType, s2: Types.song) =>
-  switch (self.state.current) {
-  | Some({song: s, prog: p, text: t}) when s.id == s2.id =>
+let renderPlayerIfCurrentSong = (current, send, song: Types.song) =>
+  switch (current) {
+  | Some({song: s, prog: p, text: t}) when s.id == song.id =>
     <div className=Styles.playerEditor>
       <Player
         url=s.url
         onProgress=(
-          (progress: Player.secs) => self.send(UpdateProgress(progress))
+          (progress: Player.secs) => send(UpdateProgress(progress))
         )
         progressInterval=100
       />
@@ -59,13 +53,13 @@ let renderCurrentSong = (self: selfType, s2: Types.song) =>
         onChange=(
           ev => {
             let newText = ReactEvent.Form.target(ev)##value;
-            self.send(TextChange(newText));
+            send(TextChange(newText));
           }
         )
       />
       <Util.Button
         label="Comment"
-        onClick=(_event => self.send(LeaveComment))
+        onClick=(_event => send(LeaveComment))
         disabled=(t == "")
       />
     </div>
@@ -129,7 +123,9 @@ let make = (~initialSongs: Types.songList, _children) => {
       <SongList
         songList=self.state.songList
         onSongSelect=((s: Types.song) => self.send(Select(s)))
-        customRender=(renderCurrentSong(self))
+        customRender=(
+          renderPlayerIfCurrentSong(self.state.current, self.send)
+        )
       />
     </div>,
 };
