@@ -33,3 +33,5 @@
 .song-editor {    grid-area: song-editor;}
 
 .song-comments {    grid-area: song-comments;}
+
+.bold { font-weight: bold; }

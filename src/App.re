@@ -152,13 +152,13 @@ let make = (~initialSongs: Types.songList, _children) => {
     },
   render: self =>
     <div className="app">
-      <div className=Styles.(appTitle ++ " app-header")>
+      <div className=Styles.(appTitle ++ " app-header bold")>
         (Util.str("Lentil"))
       </div>
       <div className="app-menu">
         <Util.Text label="MENU (placeholder)" />
         <Util.Text label="Perform" />
-        <Util.Text label="Review" />
+        <Util.Text style="bold" label="Review" />
         <Util.Text label="Settings" />
       </div>
       <div className="app-content">
