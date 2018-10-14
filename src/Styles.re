@@ -2,7 +2,7 @@ open Css;
 
 let none = style(empty);
 
-let appTitle = style([fontSize(rem(1.5)), color(darkgrey)]);
+let appTitle = style([fontSize(rem(1.5)), color(darkgray)]);
 
 let song =
   style([

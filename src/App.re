@@ -93,6 +93,13 @@ let renderPlayerIfCurrentSong = (current, send, song: Types.song) =>
   | _ => ReasonReact.null
   };
 
+let renderSongList = (songList, currentlyPlaying, send, onSongSelect) =>
+  <SongList
+    songList
+    onSongSelect=((s: Types.song) => send(Select(s)))
+    customRender=(renderPlayerIfCurrentSong(currentlyPlaying, send))
+  />;
+
 let make = (~initialSongs: Types.songList, _children) => {
   ...component,
   initialState: () => {songList: initialSongs, current: None},
