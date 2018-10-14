@@ -18,9 +18,3 @@ type song = {
 };
 
 type songList = list(song);
-type secs = int;
-
-type playingSong = {
-  song,
-  progress: secs,
-};
