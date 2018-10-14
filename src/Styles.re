@@ -2,22 +2,26 @@ open Css;
 
 let none = style(empty);
 
+let appTitle = style([fontSize(rem(1.5)), color(darkgrey)]);
+
 let song =
   style([
-    display(flexBox),
-    flexDirection(column),
-    alignItems(stretch),
+    display(`grid),
+    gridTemplateColumns([`percent(30.), `percent(30.), `percent(10.)]),
+    gridTemplateRows([`auto, `auto, `auto]),
     backgroundColor(Css.lightgrey),
-    boxShadow(~y=px(3), ~blur=px(5), rgba(0, 0, 0, 0.3)),
-    /* padding(Theme.basePadding), */
+    boxShadow(~y=px(3), ~blur=px(5), rgba(0, 0, 0, 0.6)),
   ]);
 
-let title =
-  style([
-    fontSize(rem(1.5)),
-    color(lightgrey),
-    /* marginBottom(Theme.basePadding), */
-  ]);
+let clickable = style([cursor(`pointer)]);
+
+let title = style([backgroundColor(lightpink), alignItems(`center)]);
+
+let artist = style([backgroundColor(lightgreen), alignItems(`center)]);
+
+let playerEditor = style([gridColumnStart(1), gridColumnEnd(4)]);
+
+let comments = style([alignItems(`center)]);
 
 let actionButton = disabled =>
   style([

@@ -3,19 +3,21 @@
 let comp = ReasonReact.statelessComponent("song");
 
 let make =
-    (~songList: Types.songList, ~onSongSelect: Types.song => unit, _children) => {
+    (
+      ~songList: Types.songList,
+      ~onSongSelect: Types.song => unit,
+      ~customRender=Util.ignoreRender,
+      _children,
+    ) => {
   ...comp,
   render: _self => {
-    Js.log("SongList:render");
     let songl =
       Belt.List.map(songList, (s: Types.song) =>
         <Song
           key=(s.id |> string_of_int)
           song=s
-          render=(
-            _s =>
-              <Util.Button label="Select" onClick=(_ev => onSongSelect(s)) />
-          )
+          onSelect=onSongSelect
+          customRender
         />
       )
       |> Array.of_list

@@ -15,6 +15,8 @@ let tap3 = (x, y, z) => {
   z;
 };
 
+let ignoreRender = _ => ReasonReact.null;
+
 module Button = {
   let component = ReasonReact.statelessComponent("Button");
 

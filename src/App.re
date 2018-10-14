@@ -23,6 +23,14 @@ type action =
   | LeaveComment
   | TextChange(string);
 
+let string_of_action = a =>
+  switch (a) {
+  | Select(s) => "Select: " ++ s.title
+  | UpdateProgress(t) => "UpdateProgress: " ++ string_of_float(t)
+  | LeaveComment => "LeaveComment"
+  | TextChange(s) => "TextChange: " ++ s
+  };
+
 let component = ReasonReact.reducerComponent("App");
 
 let addFeedbackToSong = (comment, loc, song: Types.song) => {
@@ -30,10 +38,41 @@ let addFeedbackToSong = (comment, loc, song: Types.song) => {
   {...song, comments: Belt.List.add(song.comments, c)};
 };
 
+type selfType = ReasonReact.self(state, ReasonReact.noRetainedProps, action);
+
+let renderCurrentSong = (self: selfType, s2: Types.song) =>
+  switch (self.state.current) {
+  | Some({song: s, prog: p, text: t}) when s.id == s2.id =>
+    <div className=Styles.playerEditor>
+      <Player
+        url=s.url
+        onProgress=(
+          (progress: Player.secs) => self.send(UpdateProgress(progress))
+        )
+      />
+      <Util.Text label=(string_of_float(p)) />
+      <input
+        value=t
+        onChange=(
+          ev => {
+            let newText = ReactEvent.Form.target(ev)##value;
+            self.send(TextChange(newText));
+          }
+        )
+      />
+      <Util.Button
+        label="submit"
+        onClick=(_event => self.send(LeaveComment))
+      />
+    </div>
+  | _ => ReasonReact.null
+  };
+
 let make = (~initialSongs: Types.songList, _children) => {
   ...component,
   initialState: () => {songList: initialSongs, current: None},
-  reducer: (action: action, state: state) =>
+  reducer: (action: action, state: state) => {
+    Js.log(string_of_action(action));
     switch (action, state) {
     | (Select(newSong), _) =>
       ReasonReact.Update({
@@ -44,10 +83,11 @@ let make = (~initialSongs: Types.songList, _children) => {
         UpdateProgress(playedSec),
         {songList: _sl, current: Some({song: s, prog: _p, text: t})},
       ) =>
+      Js.log2("UpdateProgress: ", playedSec);
       ReasonReact.Update({
         ...state,
         current: Some({song: s, prog: playedSec, text: t}),
-      })
+      });
     | (UpdateProgress(_), _) =>
       Js.log("ERROR: UPDATE PROGRESS WHILE NO SONG PLAYING");
       ReasonReact.NoUpdate;
@@ -55,6 +95,7 @@ let make = (~initialSongs: Types.songList, _children) => {
         LeaveComment,
         {songList: sl, current: Some({song: s, prog: p, text: txt})},
       ) =>
+      Js.log4("LeaveComment: ", s.title, txt, p);
       let updatedSong = addFeedbackToSong(txt, p, s);
       let updatedState = {
         songList: List.map(s' => s'.Types.id == s.id ? updatedSong : s', sl),
@@ -76,46 +117,15 @@ let make = (~initialSongs: Types.songList, _children) => {
     | (TextChange(_), _) =>
       Js.log("ERROR: ENTER TEXT WHEN NO SONG PLAYING");
       ReasonReact.NoUpdate;
-    },
-  render: self => {
-    Js.log("App:render");
+    };
+  },
+  render: self =>
     <div>
-      <div className="title is-3"> (Util.str("Lentil")) </div>
+      <div className=Styles.appTitle> (Util.str("Lentil")) </div>
       <SongList
         songList=self.state.songList
         onSongSelect=((s: Types.song) => self.send(Select(s)))
+        customRender=(renderCurrentSong(self))
       />
-      (
-        switch (self.state.current) {
-        | Some({song: s, prog: p, text: t}) =>
-          <div>
-            <Player
-              url=s.url
-              onProgress=(
-                (progress: Player.secs) =>
-                  self.send(UpdateProgress(progress))
-              )
-            />
-            <Util.Text label=(string_of_float(p)) />
-            <input
-              value=t
-              onChange=(
-                ev => {
-                  let newText = ReactDOMRe.domElementToObj(
-                                  ReactEventRe.Form.target(ev),
-                                )##value;
-                  self.send(TextChange(newText));
-                }
-              )
-            />
-            <Util.Button
-              label="submit"
-              onClick=(_event => self.send(LeaveComment))
-            />
-          </div>
-        | None => ReasonReact.null
-        }
-      )
-    </div>;
-  },
+    </div>,
 };

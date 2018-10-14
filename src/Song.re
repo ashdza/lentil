@@ -4,28 +4,30 @@ let comp = ReasonReact.statelessComponent("song");
 
 let nullRend = _ => ReasonReact.null;
 
-let make = (~song: Types.song, ~render=nullRend, _children) => {
+let make =
+    (
+      ~song: Types.song,
+      ~onSelect=ignore,
+      ~customRender=Util.ignoreRender,
+      ~style=Styles.song,
+      _children,
+    ) => {
   ...comp,
-  render: _self => {
-    Js.log2(
-      "Song:render: " ++ song.title,
-      "Comments len: " ++ (List.length(song.comments) |> string_of_int),
-    );
-    <div className=Styles.song>
-      <div> (Util.str("Title: " ++ song.title)) </div>
-      <div> (Util.str("Artist: " ++ song.artist)) </div>
-      <div> (Util.str("URL: " ++ song.url)) </div>
-      <div>
-        (
-          Util.str(
-            "Number of comments: "
-            ++ string_of_int(Belt.List.length(song.comments)),
-          )
-        )
-        (render(song))
+  render: _self =>
+    <div className=style>
+      <div
+        className=(Styles.title ++ " " ++ Styles.clickable)
+        onClick=(_e => onSelect(song))>
+        (Util.str(song.title))
       </div>
-    </div>;
-  },
+      <div className=Styles.artist> (Util.str(song.artist)) </div>
+      <div className=Styles.comments>
+        (
+          Util.str("Comments: " ++ string_of_int(List.length(song.comments)))
+        )
+      </div>
+      (customRender(song))
+    </div>,
 };
 
 module Demo = {
