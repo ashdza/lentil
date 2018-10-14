@@ -31,7 +31,12 @@ let component = ReasonReact.reducerComponent("App");
 
 let addFeedbackToSong = (comment, loc, song: Types.song) => {
   let c: Types.feedback = {location: loc, comment};
-  {...song, comments: Belt.List.add(song.comments, c)};
+  let compareComments = (c1: Types.feedback, c2: Types.feedback) =>
+    Pervasives.compare(c1.location, c2.location);
+  {
+    ...song,
+    comments: Belt.List.add(song.comments, c) |> List.sort(compareComments),
+  };
 };
 
 let renderPlayerIfCurrentSong = (current, send, song: Types.song) =>
