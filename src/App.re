@@ -49,8 +49,9 @@ let renderCurrentSong = (self: selfType, s2: Types.song) =>
         onProgress=(
           (progress: Player.secs) => self.send(UpdateProgress(progress))
         )
+        progressInterval=100
       />
-      <Util.Text label=(string_of_float(p)) />
+      <Util.Text label=("Position: " ++ string_of_float(p)) />
       <input
         value=t
         onChange=(
