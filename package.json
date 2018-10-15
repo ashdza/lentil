@@ -2,11 +2,8 @@
   "name": "lentl",
   "version": "0.1.0",
   "scripts": {
-    "start": "cp src/index.html build/index.html && cp -r src/css build/. && bsb -make-world -w",
-    "clean": "bsb -clean-world",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "webpack": "webpack -w",
-    "webpack:production": "NODE_ENV=production webpack"
+    "start": "parcel src/index.html",
+    "clean": "bsb -clean-world && rm -rf dist/*"
   },
   "keywords": [
     "BuckleScript"
@@ -22,7 +19,7 @@
   },
   "devDependencies": {
     "bs-platform": "^4.0.0",
-    "webpack": "^4.0.1",
-    "webpack-cli": "^2.0.10"
+    "bsb-js": "^1.1.7",
+    "parcel-bundler": "^1.10.3"
   }
 }

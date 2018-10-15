@@ -37,16 +37,18 @@ module Text = {
 
 /* Experiments */
 
+/* literal in JSX */
 let a = s => <div> (str(s)) </div>;
 
-let b = (s1, s2) => <div> ...[|a(s1), a(s2)|] </div>;
+/* syntactic JSX in JSX */
+let a1 = <div> <div /> </div>;
 
-let c = (l: list((string, string))) =>
-  <div>
-    (
-      l
-      |> List.map(((x, y)) => b(x, y))
-      |> Array.of_list
-      |> ReasonReact.array
-    )
-  </div>;
+/* syntactic code expressions (mixed with JSX) in JSX */
+let b = (s1, s2) => <div> <div /> (a(s1)) (a(s2)) </div>;
+
+/* syntactic array in JSX must be ...spread */
+let c = (s1, s2) => <div> ...[|a(s1), a(s2)|] </div>;
+
+/* list must be |> Array.of_list |> ReasonReact.array */
+let d = (l: list((string, string))) =>
+  l |> List.map(((x, y)) => b(x, y)) |> Array.of_list |> ReasonReact.array;

@@ -33,6 +33,6 @@ let actionButton = disabled =>
     borderRadius(px(3)),
   ]);
 
-global("body", [margin(px(15))]);
+global("body", [margin(px(5))]);
 
-global("div", [margin(px(15))]);
+global("div", [margin(px(5))]);

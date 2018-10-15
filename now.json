@@ -2,7 +2,5 @@
     "name": "lentil",
     "type": "static",
     "alias": "lentil.7insights.com",
-    "static": {
-        "public": "build"
-    }
+    "static": {}
 }

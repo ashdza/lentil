@@ -64,41 +64,82 @@ module CommentsRoll = {
   };
 };
 
-let renderPlayerIfCurrentSong = (current, send, song: Types.song) =>
-  switch (current) {
-  | Some({song: s, prog: p, text: t} as inProgress) when s.id == song.id =>
-    <div className=Styles.playerEditor>
-      <Player
-        url=s.url
-        onProgress=(
-          (progress: Player.secs) => send(UpdateProgress(progress))
-        )
-        progressInterval=100
-      />
-      <Util.Text label=("Position: " ++ string_of_float(p)) />
-      <CommentsRoll inProgress />
-      <Util.Text label="Edit Comment" />
-      <textarea
-        cols=80
-        rows=5
-        value=t
-        onChange=(ev => send(TextChange(ReactEvent.Form.target(ev)##value)))
-      />
-      <Util.Button
-        label="Submit"
-        onClick=(_event => send(LeaveComment))
-        disabled=(t == "")
-      />
-    </div>
-  | _ => ReasonReact.null
+let rec dropWhile = (list, pred) =>
+  switch (list) {
+  | [] => []
+  | [h, ...tl] => ! pred(h) ? list : dropWhile(tl, pred)
   };
 
-let renderSongList = (songList, currentlyPlaying, send, onSongSelect) =>
-  <SongList
-    songList
-    onSongSelect=((s: Types.song) => send(Select(s)))
-    customRender=(renderPlayerIfCurrentSong(currentlyPlaying, send))
-  />;
+let renderCommentsRoll = (songInProgress: songInProgress, style) =>
+  <div className=style>
+    <Util.Text label="Rolling Comments ..." />
+    (
+      songInProgress.song.comments
+      |. dropWhile(c => c.location < songInProgress.prog)
+      |> List.map(c => <Util.Text label=c.Types.comment />)
+      |> Array.of_list
+      |> ReasonReact.array
+    )
+  </div>;
+
+let renderPlayerOnCurrentSong =
+    (currentlyPlaying, send: action => unit, style) => {
+  let {song: s, prog: p, text: t} = currentlyPlaying;
+  <div className=style>
+    <Player
+      url=s.url
+      onProgress=((progress: Player.secs) => send(UpdateProgress(progress)))
+      progressInterval=100
+    />
+    <Util.Text label=("Position: " ++ string_of_float(p)) />
+    <Util.Text label="Edit Comment" />
+    <textarea
+      cols=80
+      rows=5
+      value=t
+      onChange=(ev => send(TextChange(ReactEvent.Form.target(ev)##value)))
+    />
+    <Util.Button
+      label="Submit"
+      onClick=(_event => send(LeaveComment))
+      disabled=(t == "")
+    />
+  </div>;
+};
+
+let renderSong = (song: Types.song, currentlyPlaying, send: action => unit) => {
+  let header =
+    Song.renderSongHeader(song, s => send(Select(s)), "song-header");
+  let (player, scroll) =
+    switch (currentlyPlaying) {
+    | Some({song: s, prog: _p, text: _t} as inProgress) when s.id == song.id => (
+        renderPlayerOnCurrentSong(inProgress, send, "song-player"),
+        renderCommentsRoll(inProgress, "song-comments"),
+      )
+    | _ => (ReasonReact.null, ReasonReact.null)
+    };
+  <div className="song-grid"> header player scroll </div>;
+};
+
+let demoRenderSongNotCurrent = renderSong(Song.example, None, Song.ignore);
+
+let demoRenderSongCurrent =
+  renderSong(
+    Song.example,
+    Some({song: Song.example, prog: 3.3, text: "Editing comment ..."}),
+    Song.ignore,
+  );
+
+let renderSongList = (songList, currentlyPlaying, send) =>
+  List.map(s => renderSong(s, currentlyPlaying, send), songList)
+  |> Array.of_list
+  |> ReasonReact.array;
+
+/* <SongList
+     songList
+     onSongSelect=((s: Types.song) => send(Select(s)))
+     customRender=(renderPlayerIfCurrentSong(currentlyPlaying, send))
+   />; */
 
 let make = (~initialSongs: Types.songList, _children) => {
   ...component,
@@ -156,19 +197,19 @@ let make = (~initialSongs: Types.songList, _children) => {
         (Util.str("Lentil"))
       </div>
       <div className="app-menu">
-        <Util.Text label="MENU (placeholder)" />
-        <Util.Text label="Perform" />
-        <Util.Text style="bold" label="Review" />
+        <Util.Text label="MENU" />
+        <Util.Text label="Performer" />
+        <Util.Text style="bold" label="Reviewer" />
         <Util.Text label="Settings" />
       </div>
       <div className="app-content">
-        <SongList
-          songList=self.state.songList
-          onSongSelect=((s: Types.song) => self.send(Select(s)))
-          customRender=(
-            renderPlayerIfCurrentSong(self.state.current, self.send)
+        (
+          renderSongList(
+            Util.tap(self.state.songList),
+            self.state.current,
+            self.send,
           )
-        />
+        )
       </div>
     </div>,
 };
