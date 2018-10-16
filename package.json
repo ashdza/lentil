@@ -4,7 +4,7 @@
   "scripts": {
     "start": "parcel src/index.html",
     "clean": "bsb -clean-world && rm -rf dist",
-    "deploy": "rm -rf dist && parcel build src/index.html && now --public dist && now alias"
+    "deploy": "rm -rf dist && parcel build src/index.html && now --public dist && echo 'do: now alias <last_deployment> lentil.7insights.com'"
   },
   "keywords": [
     "BuckleScript"

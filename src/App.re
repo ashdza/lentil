@@ -63,11 +63,17 @@ let make = (~initialSongs: list(song), _children) => {
     },
   render: self =>
     <div className="app">
-      <div className="app-header"> (Util.str("Lentil")) </div>
+      <div className="app-header">
+        <div className="app-title"> (Util.str("Lentil")) </div>
+        <div className="app-subtitle">
+          (Util.str("Making Musicians Better"))
+        </div>
+      </div>
       <div className="app-menu">
         <Util.Text label="MENU" />
-        <Util.Text label="Performer" />
-        <Util.Text style="bold" label="Reviewer" />
+        <Util.Text label="Perform" />
+        <Util.Text style="bold" label="Review" />
+        <Util.Text label="Improve" />
         <Util.Text label="Settings" />
       </div>
       <div className="app-content">
