@@ -14,7 +14,9 @@ I keep some notes on this project on my blog at https://ashdza.github.io/blog/.
 ## Demo
 
 I keep a running demo of a fairly current version of this app at 
-https://lentil.7insights.com. I currently  use an existing React component over SoundCloud for the audio player, and when paused, the player sometimes overlays an ad. You need to close out that overlay to continue with the player.
+https://lentil.7insights.com.
+
+I currently  use an existing React component over SoundCloud for the audio player, and when paused, the player sometimes overlays an ad. You need to close out that overlay to continue with the player.
 
 ## Code Overview
 
