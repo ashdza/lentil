@@ -18,20 +18,34 @@
     height: 100%;
     display: grid;
     grid-gap: 3px;
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: auto auto auto;
+
+    grid-template-columns: 1.2fr 1fr;
+    grid-template-rows: auto auto;
+    background-color: lightgrey;
+    /* box-shadow: 0px 3px 5px rgba(0,0,0,0.6); */
+
     grid-template-areas: 
-        "song-header    song-header"
-        "song-player    song-comments"
-        "song-editor    song-comments";
+        "song-header    song-comments"
+        "song-player    song-comments";
 }
 
-.song-header { grid-area: song-header; }
+.song-header { 
+    grid-area: song-header; 
+    
+    display: grid;
+    grid-template-columns: 3fr 3fr 2fr;
+    grid-template-rows: auto auto auto;
+    background-color: lightgrey;
+    /* box-shadow: 0px 3px 5px rgba(0,0,0,0.6); */
 
-.song-player {    grid-area: song-player;}
+}
+
+.song-player { grid-area: song-player; }
 
 .song-editor {    grid-area: song-editor;}
 
 .song-comments {    grid-area: song-comments;}
 
 .bold { font-weight: bold; }
+
+.comment-entry { font-size: 1.0em; }

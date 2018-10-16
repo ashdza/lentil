@@ -39,31 +39,6 @@ let addFeedbackToSong = (comment, loc, song: Types.song) => {
   };
 };
 
-module CommentsRoll = {
-  let component = ReasonReact.statelessComponent("Comments");
-
-  let rec dropWhile = (list, pred) =>
-    switch (list) {
-    | [] => []
-    | [h, ...tl] => ! pred(h) ? list : dropWhile(tl, pred)
-    };
-
-  let make = (~inProgress: songInProgress, _children) => {
-    ...component,
-    render: _self =>
-      <div className=Styles.commentsRoll>
-        <Util.Text label="Rolling Comments ..." />
-        (
-          inProgress.song.comments
-          |. dropWhile(c => c.location < inProgress.prog)
-          |> List.map(c => <Util.Text label=c.Types.comment />)
-          |> Array.of_list
-          |> ReasonReact.array
-        )
-      </div>,
-  };
-};
-
 let rec dropWhile = (list, pred) =>
   switch (list) {
   | [] => []
@@ -72,11 +47,15 @@ let rec dropWhile = (list, pred) =>
 
 let renderCommentsRoll = (songInProgress: songInProgress, style) =>
   <div className=style>
-    <Util.Text label="Rolling Comments ..." />
+    <Util.Text label="Rolling Comments:" style="bold" />
     (
       songInProgress.song.comments
       |. dropWhile(c => c.location < songInProgress.prog)
-      |> List.map(c => <Util.Text label=c.Types.comment />)
+      |> List.map((c: Types.feedback) =>
+           <Util.Text
+             label=(c.comment ++ Format.sprintf(" (at %0.1f)", c.location))
+           />
+         )
       |> Array.of_list
       |> ReasonReact.array
     )
@@ -91,10 +70,13 @@ let renderPlayerOnCurrentSong =
       onProgress=((progress: Player.secs) => send(UpdateProgress(progress)))
       progressInterval=100
     />
-    <Util.Text label=("Position: " ++ string_of_float(p)) />
-    <Util.Text label="Edit Comment" />
+    <Util.Text
+      label=("Edit Comment @ Position: " ++ Format.sprintf("%0.1f", p))
+      style="bold"
+    />
     <textarea
-      cols=80
+      className="comment-entry"
+      cols=60
       rows=5
       value=t
       onChange=(ev => send(TextChange(ReactEvent.Form.target(ev)##value)))
@@ -123,23 +105,16 @@ let renderSong = (song: Types.song, currentlyPlaying, send: action => unit) => {
 
 let demoRenderSongNotCurrent = renderSong(Song.example, None, Song.ignore);
 
+let demoCurrentlyPlaying =
+  Some({song: Song.example, prog: 13.293, text: "Editing comment ..."});
+
 let demoRenderSongCurrent =
-  renderSong(
-    Song.example,
-    Some({song: Song.example, prog: 3.3, text: "Editing comment ..."}),
-    Song.ignore,
-  );
+  renderSong(Song.example, demoCurrentlyPlaying, Song.ignore);
 
 let renderSongList = (songList, currentlyPlaying, send) =>
   List.map(s => renderSong(s, currentlyPlaying, send), songList)
   |> Array.of_list
   |> ReasonReact.array;
-
-/* <SongList
-     songList
-     onSongSelect=((s: Types.song) => send(Select(s)))
-     customRender=(renderPlayerIfCurrentSong(currentlyPlaying, send))
-   />; */
 
 let make = (~initialSongs: Types.songList, _children) => {
   ...component,

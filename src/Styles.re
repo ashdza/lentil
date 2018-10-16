@@ -25,14 +25,6 @@ let playerEditor = style([gridColumnStart(1), gridColumnEnd(3)]);
 
 let comments = style([alignItems(`center)]);
 
-let actionButton = disabled =>
-  style([
-    background(disabled ? darkgray : white),
-    color(black),
-    border(px(1), solid, black),
-    borderRadius(px(3)),
-  ]);
-
 global("body", [margin(px(5))]);
 
 global("div", [margin(px(5))]);

@@ -8723,7 +8723,9505 @@ if ("development" === 'production') {
 } else {
   module.exports = require('./cjs/react.development.js');
 }
-},{"./cjs/react.development.js":"../node_modules/react/cjs/react.development.js"}],"../node_modules/bs-platform/lib/js/js_int.js":[function(require,module,exports) {
+},{"./cjs/react.development.js":"../node_modules/react/cjs/react.development.js"}],"../node_modules/bs-platform/lib/js/char.js":[function(require,module,exports) {
+'use strict';
+
+var Caml_string = require("./caml_string.js");
+var Caml_builtin_exceptions = require("./caml_builtin_exceptions.js");
+
+function chr(n) {
+  if (n < 0 || n > 255) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "Char.chr"
+        ];
+  } else {
+    return n;
+  }
+}
+
+function escaped(c) {
+  var exit = 0;
+  if (c >= 40) {
+    if (c !== 92) {
+      exit = c >= 127 ? 1 : 2;
+    } else {
+      return "\\\\";
+    }
+  } else if (c >= 32) {
+    if (c >= 39) {
+      return "\\'";
+    } else {
+      exit = 2;
+    }
+  } else if (c >= 14) {
+    exit = 1;
+  } else {
+    switch (c) {
+      case 8 : 
+          return "\\b";
+      case 9 : 
+          return "\\t";
+      case 10 : 
+          return "\\n";
+      case 0 : 
+      case 1 : 
+      case 2 : 
+      case 3 : 
+      case 4 : 
+      case 5 : 
+      case 6 : 
+      case 7 : 
+      case 11 : 
+      case 12 : 
+          exit = 1;
+          break;
+      case 13 : 
+          return "\\r";
+      
+    }
+  }
+  switch (exit) {
+    case 1 : 
+        var s = Caml_string.caml_create_string(4);
+        s[0] = /* "\\" */92;
+        s[1] = 48 + (c / 100 | 0) | 0;
+        s[2] = 48 + (c / 10 | 0) % 10 | 0;
+        s[3] = 48 + c % 10 | 0;
+        return Caml_string.bytes_to_string(s);
+    case 2 : 
+        var s$1 = Caml_string.caml_create_string(1);
+        s$1[0] = c;
+        return Caml_string.bytes_to_string(s$1);
+    
+  }
+}
+
+function lowercase(c) {
+  if (c >= /* "A" */65 && c <= /* "Z" */90 || c >= /* "\192" */192 && c <= /* "\214" */214 || c >= /* "\216" */216 && c <= /* "\222" */222) {
+    return c + 32 | 0;
+  } else {
+    return c;
+  }
+}
+
+function uppercase(c) {
+  if (c >= /* "a" */97 && c <= /* "z" */122 || c >= /* "\224" */224 && c <= /* "\246" */246 || c >= /* "\248" */248 && c <= /* "\254" */254) {
+    return c - 32 | 0;
+  } else {
+    return c;
+  }
+}
+
+function compare(c1, c2) {
+  return c1 - c2 | 0;
+}
+
+exports.chr = chr;
+exports.escaped = escaped;
+exports.lowercase = lowercase;
+exports.uppercase = uppercase;
+exports.compare = compare;
+/* No side effect */
+
+},{"./caml_string.js":"../node_modules/bs-platform/lib/js/caml_string.js","./caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js"}],"../node_modules/bs-platform/lib/js/bytes.js":[function(require,module,exports) {
+'use strict';
+
+var Char = require("./char.js");
+var List = require("./list.js");
+var Curry = require("./curry.js");
+var Caml_obj = require("./caml_obj.js");
+var Caml_int32 = require("./caml_int32.js");
+var Caml_string = require("./caml_string.js");
+var Caml_primitive = require("./caml_primitive.js");
+var Caml_builtin_exceptions = require("./caml_builtin_exceptions.js");
+
+function make(n, c) {
+  var s = Caml_string.caml_create_string(n);
+  Caml_string.caml_fill_string(s, 0, n, c);
+  return s;
+}
+
+function init(n, f) {
+  var s = Caml_string.caml_create_string(n);
+  for(var i = 0 ,i_finish = n - 1 | 0; i <= i_finish; ++i){
+    s[i] = Curry._1(f, i);
+  }
+  return s;
+}
+
+var empty = [];
+
+function copy(s) {
+  var len = s.length;
+  var r = Caml_string.caml_create_string(len);
+  Caml_string.caml_blit_bytes(s, 0, r, 0, len);
+  return r;
+}
+
+function to_string(b) {
+  return Caml_string.bytes_to_string(copy(b));
+}
+
+function of_string(s) {
+  return copy(Caml_string.bytes_of_string(s));
+}
+
+function sub(s, ofs, len) {
+  if (ofs < 0 || len < 0 || ofs > (s.length - len | 0)) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "String.sub / Bytes.sub"
+        ];
+  } else {
+    var r = Caml_string.caml_create_string(len);
+    Caml_string.caml_blit_bytes(s, ofs, r, 0, len);
+    return r;
+  }
+}
+
+function sub_string(b, ofs, len) {
+  return Caml_string.bytes_to_string(sub(b, ofs, len));
+}
+
+function extend(s, left, right) {
+  var len = (s.length + left | 0) + right | 0;
+  var r = Caml_string.caml_create_string(len);
+  var match = left < 0 ? /* tuple */[
+      -left | 0,
+      0
+    ] : /* tuple */[
+      0,
+      left
+    ];
+  var dstoff = match[1];
+  var srcoff = match[0];
+  var cpylen = Caml_primitive.caml_int_min(s.length - srcoff | 0, len - dstoff | 0);
+  if (cpylen > 0) {
+    Caml_string.caml_blit_bytes(s, srcoff, r, dstoff, cpylen);
+  }
+  return r;
+}
+
+function fill(s, ofs, len, c) {
+  if (ofs < 0 || len < 0 || ofs > (s.length - len | 0)) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "String.fill / Bytes.fill"
+        ];
+  } else {
+    return Caml_string.caml_fill_string(s, ofs, len, c);
+  }
+}
+
+function blit(s1, ofs1, s2, ofs2, len) {
+  if (len < 0 || ofs1 < 0 || ofs1 > (s1.length - len | 0) || ofs2 < 0 || ofs2 > (s2.length - len | 0)) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "Bytes.blit"
+        ];
+  } else {
+    return Caml_string.caml_blit_bytes(s1, ofs1, s2, ofs2, len);
+  }
+}
+
+function blit_string(s1, ofs1, s2, ofs2, len) {
+  if (len < 0 || ofs1 < 0 || ofs1 > (s1.length - len | 0) || ofs2 < 0 || ofs2 > (s2.length - len | 0)) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "String.blit / Bytes.blit_string"
+        ];
+  } else {
+    return Caml_string.caml_blit_string(s1, ofs1, s2, ofs2, len);
+  }
+}
+
+function iter(f, a) {
+  for(var i = 0 ,i_finish = a.length - 1 | 0; i <= i_finish; ++i){
+    Curry._1(f, a[i]);
+  }
+  return /* () */0;
+}
+
+function iteri(f, a) {
+  for(var i = 0 ,i_finish = a.length - 1 | 0; i <= i_finish; ++i){
+    Curry._2(f, i, a[i]);
+  }
+  return /* () */0;
+}
+
+function concat(sep, l) {
+  if (l) {
+    var hd = l[0];
+    var num = /* record */[/* contents */0];
+    var len = /* record */[/* contents */0];
+    List.iter((function (s) {
+            num[0] = num[0] + 1 | 0;
+            len[0] = len[0] + s.length | 0;
+            return /* () */0;
+          }), l);
+    var r = Caml_string.caml_create_string(len[0] + Caml_int32.imul(sep.length, num[0] - 1 | 0) | 0);
+    Caml_string.caml_blit_bytes(hd, 0, r, 0, hd.length);
+    var pos = /* record */[/* contents */hd.length];
+    List.iter((function (s) {
+            Caml_string.caml_blit_bytes(sep, 0, r, pos[0], sep.length);
+            pos[0] = pos[0] + sep.length | 0;
+            Caml_string.caml_blit_bytes(s, 0, r, pos[0], s.length);
+            pos[0] = pos[0] + s.length | 0;
+            return /* () */0;
+          }), l[1]);
+    return r;
+  } else {
+    return empty;
+  }
+}
+
+function cat(s1, s2) {
+  var l1 = s1.length;
+  var l2 = s2.length;
+  var r = Caml_string.caml_create_string(l1 + l2 | 0);
+  Caml_string.caml_blit_bytes(s1, 0, r, 0, l1);
+  Caml_string.caml_blit_bytes(s2, 0, r, l1, l2);
+  return r;
+}
+
+function is_space(param) {
+  var switcher = param - 9 | 0;
+  if (switcher > 4 || switcher < 0) {
+    return switcher === 23;
+  } else {
+    return switcher !== 2;
+  }
+}
+
+function trim(s) {
+  var len = s.length;
+  var i = 0;
+  while(i < len && is_space(s[i])) {
+    i = i + 1 | 0;
+  };
+  var j = len - 1 | 0;
+  while(j >= i && is_space(s[j])) {
+    j = j - 1 | 0;
+  };
+  if (j >= i) {
+    return sub(s, i, (j - i | 0) + 1 | 0);
+  } else {
+    return empty;
+  }
+}
+
+function escaped(s) {
+  var n = 0;
+  for(var i = 0 ,i_finish = s.length - 1 | 0; i <= i_finish; ++i){
+    var match = s[i];
+    var tmp;
+    if (match >= 32) {
+      var switcher = match - 34 | 0;
+      tmp = switcher > 58 || switcher < 0 ? (
+          switcher >= 93 ? 4 : 1
+        ) : (
+          switcher > 57 || switcher < 1 ? 2 : 1
+        );
+    } else {
+      tmp = match >= 11 ? (
+          match !== 13 ? 4 : 2
+        ) : (
+          match >= 8 ? 2 : 4
+        );
+    }
+    n = n + tmp | 0;
+  }
+  if (n === s.length) {
+    return copy(s);
+  } else {
+    var s$prime = Caml_string.caml_create_string(n);
+    n = 0;
+    for(var i$1 = 0 ,i_finish$1 = s.length - 1 | 0; i$1 <= i_finish$1; ++i$1){
+      var c = s[i$1];
+      var exit = 0;
+      if (c >= 35) {
+        if (c !== 92) {
+          if (c >= 127) {
+            exit = 1;
+          } else {
+            s$prime[n] = c;
+          }
+        } else {
+          exit = 2;
+        }
+      } else if (c >= 32) {
+        if (c >= 34) {
+          exit = 2;
+        } else {
+          s$prime[n] = c;
+        }
+      } else if (c >= 14) {
+        exit = 1;
+      } else {
+        switch (c) {
+          case 8 : 
+              s$prime[n] = /* "\\" */92;
+              n = n + 1 | 0;
+              s$prime[n] = /* "b" */98;
+              break;
+          case 9 : 
+              s$prime[n] = /* "\\" */92;
+              n = n + 1 | 0;
+              s$prime[n] = /* "t" */116;
+              break;
+          case 10 : 
+              s$prime[n] = /* "\\" */92;
+              n = n + 1 | 0;
+              s$prime[n] = /* "n" */110;
+              break;
+          case 0 : 
+          case 1 : 
+          case 2 : 
+          case 3 : 
+          case 4 : 
+          case 5 : 
+          case 6 : 
+          case 7 : 
+          case 11 : 
+          case 12 : 
+              exit = 1;
+              break;
+          case 13 : 
+              s$prime[n] = /* "\\" */92;
+              n = n + 1 | 0;
+              s$prime[n] = /* "r" */114;
+              break;
+          
+        }
+      }
+      switch (exit) {
+        case 1 : 
+            s$prime[n] = /* "\\" */92;
+            n = n + 1 | 0;
+            s$prime[n] = 48 + (c / 100 | 0) | 0;
+            n = n + 1 | 0;
+            s$prime[n] = 48 + (c / 10 | 0) % 10 | 0;
+            n = n + 1 | 0;
+            s$prime[n] = 48 + c % 10 | 0;
+            break;
+        case 2 : 
+            s$prime[n] = /* "\\" */92;
+            n = n + 1 | 0;
+            s$prime[n] = c;
+            break;
+        
+      }
+      n = n + 1 | 0;
+    }
+    return s$prime;
+  }
+}
+
+function map(f, s) {
+  var l = s.length;
+  if (l === 0) {
+    return s;
+  } else {
+    var r = Caml_string.caml_create_string(l);
+    for(var i = 0 ,i_finish = l - 1 | 0; i <= i_finish; ++i){
+      r[i] = Curry._1(f, s[i]);
+    }
+    return r;
+  }
+}
+
+function mapi(f, s) {
+  var l = s.length;
+  if (l === 0) {
+    return s;
+  } else {
+    var r = Caml_string.caml_create_string(l);
+    for(var i = 0 ,i_finish = l - 1 | 0; i <= i_finish; ++i){
+      r[i] = Curry._2(f, i, s[i]);
+    }
+    return r;
+  }
+}
+
+function uppercase(s) {
+  return map(Char.uppercase, s);
+}
+
+function lowercase(s) {
+  return map(Char.lowercase, s);
+}
+
+function apply1(f, s) {
+  if (s.length === 0) {
+    return s;
+  } else {
+    var r = copy(s);
+    r[0] = Curry._1(f, s[0]);
+    return r;
+  }
+}
+
+function capitalize(s) {
+  return apply1(Char.uppercase, s);
+}
+
+function uncapitalize(s) {
+  return apply1(Char.lowercase, s);
+}
+
+function index_rec(s, lim, _i, c) {
+  while(true) {
+    var i = _i;
+    if (i >= lim) {
+      throw Caml_builtin_exceptions.not_found;
+    } else if (s[i] === c) {
+      return i;
+    } else {
+      _i = i + 1 | 0;
+      continue ;
+    }
+  };
+}
+
+function index(s, c) {
+  return index_rec(s, s.length, 0, c);
+}
+
+function index_from(s, i, c) {
+  var l = s.length;
+  if (i < 0 || i > l) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "String.index_from / Bytes.index_from"
+        ];
+  } else {
+    return index_rec(s, l, i, c);
+  }
+}
+
+function rindex_rec(s, _i, c) {
+  while(true) {
+    var i = _i;
+    if (i < 0) {
+      throw Caml_builtin_exceptions.not_found;
+    } else if (s[i] === c) {
+      return i;
+    } else {
+      _i = i - 1 | 0;
+      continue ;
+    }
+  };
+}
+
+function rindex(s, c) {
+  return rindex_rec(s, s.length - 1 | 0, c);
+}
+
+function rindex_from(s, i, c) {
+  if (i < -1 || i >= s.length) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "String.rindex_from / Bytes.rindex_from"
+        ];
+  } else {
+    return rindex_rec(s, i, c);
+  }
+}
+
+function contains_from(s, i, c) {
+  var l = s.length;
+  if (i < 0 || i > l) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "String.contains_from / Bytes.contains_from"
+        ];
+  } else {
+    try {
+      index_rec(s, l, i, c);
+      return true;
+    }
+    catch (exn){
+      if (exn === Caml_builtin_exceptions.not_found) {
+        return false;
+      } else {
+        throw exn;
+      }
+    }
+  }
+}
+
+function contains(s, c) {
+  return contains_from(s, 0, c);
+}
+
+function rcontains_from(s, i, c) {
+  if (i < 0 || i >= s.length) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "String.rcontains_from / Bytes.rcontains_from"
+        ];
+  } else {
+    try {
+      rindex_rec(s, i, c);
+      return true;
+    }
+    catch (exn){
+      if (exn === Caml_builtin_exceptions.not_found) {
+        return false;
+      } else {
+        throw exn;
+      }
+    }
+  }
+}
+
+var compare = Caml_obj.caml_compare;
+
+var unsafe_to_string = Caml_string.bytes_to_string;
+
+var unsafe_of_string = Caml_string.bytes_of_string;
+
+exports.make = make;
+exports.init = init;
+exports.empty = empty;
+exports.copy = copy;
+exports.of_string = of_string;
+exports.to_string = to_string;
+exports.sub = sub;
+exports.sub_string = sub_string;
+exports.extend = extend;
+exports.fill = fill;
+exports.blit = blit;
+exports.blit_string = blit_string;
+exports.concat = concat;
+exports.cat = cat;
+exports.iter = iter;
+exports.iteri = iteri;
+exports.map = map;
+exports.mapi = mapi;
+exports.trim = trim;
+exports.escaped = escaped;
+exports.index = index;
+exports.rindex = rindex;
+exports.index_from = index_from;
+exports.rindex_from = rindex_from;
+exports.contains = contains;
+exports.contains_from = contains_from;
+exports.rcontains_from = rcontains_from;
+exports.uppercase = uppercase;
+exports.lowercase = lowercase;
+exports.capitalize = capitalize;
+exports.uncapitalize = uncapitalize;
+exports.compare = compare;
+exports.unsafe_to_string = unsafe_to_string;
+exports.unsafe_of_string = unsafe_of_string;
+/* No side effect */
+
+},{"./char.js":"../node_modules/bs-platform/lib/js/char.js","./list.js":"../node_modules/bs-platform/lib/js/list.js","./curry.js":"../node_modules/bs-platform/lib/js/curry.js","./caml_obj.js":"../node_modules/bs-platform/lib/js/caml_obj.js","./caml_int32.js":"../node_modules/bs-platform/lib/js/caml_int32.js","./caml_string.js":"../node_modules/bs-platform/lib/js/caml_string.js","./caml_primitive.js":"../node_modules/bs-platform/lib/js/caml_primitive.js","./caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js"}],"../node_modules/bs-platform/lib/js/string.js":[function(require,module,exports) {
+'use strict';
+
+var List = require("./list.js");
+var Bytes = require("./bytes.js");
+var Caml_int32 = require("./caml_int32.js");
+var Caml_string = require("./caml_string.js");
+var Caml_primitive = require("./caml_primitive.js");
+
+function make(n, c) {
+  return Caml_string.bytes_to_string(Bytes.make(n, c));
+}
+
+function init(n, f) {
+  return Caml_string.bytes_to_string(Bytes.init(n, f));
+}
+
+function copy(s) {
+  return Caml_string.bytes_to_string(Bytes.copy(Caml_string.bytes_of_string(s)));
+}
+
+function sub(s, ofs, len) {
+  return Caml_string.bytes_to_string(Bytes.sub(Caml_string.bytes_of_string(s), ofs, len));
+}
+
+function concat(sep, l) {
+  if (l) {
+    var hd = l[0];
+    var num = /* record */[/* contents */0];
+    var len = /* record */[/* contents */0];
+    List.iter((function (s) {
+            num[0] = num[0] + 1 | 0;
+            len[0] = len[0] + s.length | 0;
+            return /* () */0;
+          }), l);
+    var r = Caml_string.caml_create_string(len[0] + Caml_int32.imul(sep.length, num[0] - 1 | 0) | 0);
+    Caml_string.caml_blit_string(hd, 0, r, 0, hd.length);
+    var pos = /* record */[/* contents */hd.length];
+    List.iter((function (s) {
+            Caml_string.caml_blit_string(sep, 0, r, pos[0], sep.length);
+            pos[0] = pos[0] + sep.length | 0;
+            Caml_string.caml_blit_string(s, 0, r, pos[0], s.length);
+            pos[0] = pos[0] + s.length | 0;
+            return /* () */0;
+          }), l[1]);
+    return Caml_string.bytes_to_string(r);
+  } else {
+    return "";
+  }
+}
+
+function iter(f, s) {
+  return Bytes.iter(f, Caml_string.bytes_of_string(s));
+}
+
+function iteri(f, s) {
+  return Bytes.iteri(f, Caml_string.bytes_of_string(s));
+}
+
+function map(f, s) {
+  return Caml_string.bytes_to_string(Bytes.map(f, Caml_string.bytes_of_string(s)));
+}
+
+function mapi(f, s) {
+  return Caml_string.bytes_to_string(Bytes.mapi(f, Caml_string.bytes_of_string(s)));
+}
+
+function is_space(param) {
+  var switcher = param - 9 | 0;
+  if (switcher > 4 || switcher < 0) {
+    return switcher === 23;
+  } else {
+    return switcher !== 2;
+  }
+}
+
+function trim(s) {
+  if (s === "" || !(is_space(s.charCodeAt(0)) || is_space(s.charCodeAt(s.length - 1 | 0)))) {
+    return s;
+  } else {
+    return Caml_string.bytes_to_string(Bytes.trim(Caml_string.bytes_of_string(s)));
+  }
+}
+
+function escaped(s) {
+  var needs_escape = function (_i) {
+    while(true) {
+      var i = _i;
+      if (i >= s.length) {
+        return false;
+      } else {
+        var match = s.charCodeAt(i);
+        if (match >= 32) {
+          var switcher = match - 34 | 0;
+          if (switcher > 58 || switcher < 0) {
+            if (switcher >= 93) {
+              return true;
+            } else {
+              _i = i + 1 | 0;
+              continue ;
+            }
+          } else if (switcher > 57 || switcher < 1) {
+            return true;
+          } else {
+            _i = i + 1 | 0;
+            continue ;
+          }
+        } else {
+          return true;
+        }
+      }
+    };
+  };
+  if (needs_escape(0)) {
+    return Caml_string.bytes_to_string(Bytes.escaped(Caml_string.bytes_of_string(s)));
+  } else {
+    return s;
+  }
+}
+
+function index(s, c) {
+  return Bytes.index(Caml_string.bytes_of_string(s), c);
+}
+
+function rindex(s, c) {
+  return Bytes.rindex(Caml_string.bytes_of_string(s), c);
+}
+
+function index_from(s, i, c) {
+  return Bytes.index_from(Caml_string.bytes_of_string(s), i, c);
+}
+
+function rindex_from(s, i, c) {
+  return Bytes.rindex_from(Caml_string.bytes_of_string(s), i, c);
+}
+
+function contains(s, c) {
+  return Bytes.contains(Caml_string.bytes_of_string(s), c);
+}
+
+function contains_from(s, i, c) {
+  return Bytes.contains_from(Caml_string.bytes_of_string(s), i, c);
+}
+
+function rcontains_from(s, i, c) {
+  return Bytes.rcontains_from(Caml_string.bytes_of_string(s), i, c);
+}
+
+function uppercase(s) {
+  return Caml_string.bytes_to_string(Bytes.uppercase(Caml_string.bytes_of_string(s)));
+}
+
+function lowercase(s) {
+  return Caml_string.bytes_to_string(Bytes.lowercase(Caml_string.bytes_of_string(s)));
+}
+
+function capitalize(s) {
+  return Caml_string.bytes_to_string(Bytes.capitalize(Caml_string.bytes_of_string(s)));
+}
+
+function uncapitalize(s) {
+  return Caml_string.bytes_to_string(Bytes.uncapitalize(Caml_string.bytes_of_string(s)));
+}
+
+var compare = Caml_primitive.caml_string_compare;
+
+var fill = Bytes.fill;
+
+var blit = Bytes.blit_string;
+
+exports.make = make;
+exports.init = init;
+exports.copy = copy;
+exports.sub = sub;
+exports.fill = fill;
+exports.blit = blit;
+exports.concat = concat;
+exports.iter = iter;
+exports.iteri = iteri;
+exports.map = map;
+exports.mapi = mapi;
+exports.trim = trim;
+exports.escaped = escaped;
+exports.index = index;
+exports.rindex = rindex;
+exports.index_from = index_from;
+exports.rindex_from = rindex_from;
+exports.contains = contains;
+exports.contains_from = contains_from;
+exports.rcontains_from = rcontains_from;
+exports.uppercase = uppercase;
+exports.lowercase = lowercase;
+exports.capitalize = capitalize;
+exports.uncapitalize = uncapitalize;
+exports.compare = compare;
+/* No side effect */
+
+},{"./list.js":"../node_modules/bs-platform/lib/js/list.js","./bytes.js":"../node_modules/bs-platform/lib/js/bytes.js","./caml_int32.js":"../node_modules/bs-platform/lib/js/caml_int32.js","./caml_string.js":"../node_modules/bs-platform/lib/js/caml_string.js","./caml_primitive.js":"../node_modules/bs-platform/lib/js/caml_primitive.js"}],"../node_modules/bs-platform/lib/js/buffer.js":[function(require,module,exports) {
+'use strict';
+
+var Bytes = require("./bytes.js");
+var Curry = require("./curry.js");
+var $$String = require("./string.js");
+var Pervasives = require("./pervasives.js");
+var Caml_string = require("./caml_string.js");
+var Caml_builtin_exceptions = require("./caml_builtin_exceptions.js");
+
+function create(n) {
+  var n$1 = n < 1 ? 1 : n;
+  var s = Caml_string.caml_create_string(n$1);
+  return /* record */[
+          /* buffer */s,
+          /* position */0,
+          /* length */n$1,
+          /* initial_buffer */s
+        ];
+}
+
+function contents(b) {
+  return Bytes.sub_string(b[/* buffer */0], 0, b[/* position */1]);
+}
+
+function to_bytes(b) {
+  return Bytes.sub(b[/* buffer */0], 0, b[/* position */1]);
+}
+
+function sub(b, ofs, len) {
+  if (ofs < 0 || len < 0 || ofs > (b[/* position */1] - len | 0)) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "Buffer.sub"
+        ];
+  } else {
+    return Bytes.sub_string(b[/* buffer */0], ofs, len);
+  }
+}
+
+function blit(src, srcoff, dst, dstoff, len) {
+  if (len < 0 || srcoff < 0 || srcoff > (src[/* position */1] - len | 0) || dstoff < 0 || dstoff > (dst.length - len | 0)) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "Buffer.blit"
+        ];
+  } else {
+    return Bytes.blit(src[/* buffer */0], srcoff, dst, dstoff, len);
+  }
+}
+
+function nth(b, ofs) {
+  if (ofs < 0 || ofs >= b[/* position */1]) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "Buffer.nth"
+        ];
+  } else {
+    return b[/* buffer */0][ofs];
+  }
+}
+
+function length(b) {
+  return b[/* position */1];
+}
+
+function clear(b) {
+  b[/* position */1] = 0;
+  return /* () */0;
+}
+
+function reset(b) {
+  b[/* position */1] = 0;
+  b[/* buffer */0] = b[/* initial_buffer */3];
+  b[/* length */2] = b[/* buffer */0].length;
+  return /* () */0;
+}
+
+function resize(b, more) {
+  var len = b[/* length */2];
+  var new_len = len;
+  while((b[/* position */1] + more | 0) > new_len) {
+    new_len = (new_len << 1);
+  };
+  var new_buffer = Caml_string.caml_create_string(new_len);
+  Bytes.blit(b[/* buffer */0], 0, new_buffer, 0, b[/* position */1]);
+  b[/* buffer */0] = new_buffer;
+  b[/* length */2] = new_len;
+  return /* () */0;
+}
+
+function add_char(b, c) {
+  var pos = b[/* position */1];
+  if (pos >= b[/* length */2]) {
+    resize(b, 1);
+  }
+  b[/* buffer */0][pos] = c;
+  b[/* position */1] = pos + 1 | 0;
+  return /* () */0;
+}
+
+function add_substring(b, s, offset, len) {
+  if (offset < 0 || len < 0 || (offset + len | 0) > s.length) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "Buffer.add_substring/add_subbytes"
+        ];
+  }
+  var new_position = b[/* position */1] + len | 0;
+  if (new_position > b[/* length */2]) {
+    resize(b, len);
+  }
+  Bytes.blit_string(s, offset, b[/* buffer */0], b[/* position */1], len);
+  b[/* position */1] = new_position;
+  return /* () */0;
+}
+
+function add_subbytes(b, s, offset, len) {
+  return add_substring(b, Caml_string.bytes_to_string(s), offset, len);
+}
+
+function add_string(b, s) {
+  var len = s.length;
+  var new_position = b[/* position */1] + len | 0;
+  if (new_position > b[/* length */2]) {
+    resize(b, len);
+  }
+  Bytes.blit_string(s, 0, b[/* buffer */0], b[/* position */1], len);
+  b[/* position */1] = new_position;
+  return /* () */0;
+}
+
+function add_bytes(b, s) {
+  return add_string(b, Caml_string.bytes_to_string(s));
+}
+
+function add_buffer(b, bs) {
+  return add_subbytes(b, bs[/* buffer */0], 0, bs[/* position */1]);
+}
+
+function add_channel(b, ic, len) {
+  if (len < 0) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "Buffer.add_channel"
+        ];
+  }
+  if ((b[/* position */1] + len | 0) > b[/* length */2]) {
+    resize(b, len);
+  }
+  Pervasives.really_input(ic, b[/* buffer */0], b[/* position */1], len);
+  b[/* position */1] = b[/* position */1] + len | 0;
+  return /* () */0;
+}
+
+function output_buffer(oc, b) {
+  return Pervasives.output(oc, b[/* buffer */0], 0, b[/* position */1]);
+}
+
+function closing(param) {
+  if (param !== 40) {
+    if (param !== 123) {
+      throw [
+            Caml_builtin_exceptions.assert_failure,
+            /* tuple */[
+              "buffer.ml",
+              126,
+              9
+            ]
+          ];
+    } else {
+      return /* "}" */125;
+    }
+  } else {
+    return /* ")" */41;
+  }
+}
+
+function advance_to_closing(opening, closing, k, s, start) {
+  var _k = k;
+  var _i = start;
+  var lim = s.length;
+  while(true) {
+    var i = _i;
+    var k$1 = _k;
+    if (i >= lim) {
+      throw Caml_builtin_exceptions.not_found;
+    } else if (Caml_string.get(s, i) === opening) {
+      _i = i + 1 | 0;
+      _k = k$1 + 1 | 0;
+      continue ;
+    } else if (Caml_string.get(s, i) === closing) {
+      if (k$1 === 0) {
+        return i;
+      } else {
+        _i = i + 1 | 0;
+        _k = k$1 - 1 | 0;
+        continue ;
+      }
+    } else {
+      _i = i + 1 | 0;
+      continue ;
+    }
+  };
+}
+
+function advance_to_non_alpha(s, start) {
+  var _i = start;
+  var lim = s.length;
+  while(true) {
+    var i = _i;
+    if (i >= lim) {
+      return lim;
+    } else {
+      var match = Caml_string.get(s, i);
+      var exit = 0;
+      if (match >= 91) {
+        if (match >= 97) {
+          if (match >= 123) {
+            return i;
+          } else {
+            exit = 1;
+          }
+        } else if (match !== 95) {
+          return i;
+        } else {
+          exit = 1;
+        }
+      } else if (match >= 58) {
+        if (match >= 65) {
+          exit = 1;
+        } else {
+          return i;
+        }
+      } else if (match >= 48) {
+        exit = 1;
+      } else {
+        return i;
+      }
+      if (exit === 1) {
+        _i = i + 1 | 0;
+        continue ;
+      }
+      
+    }
+  };
+}
+
+function find_ident(s, start, lim) {
+  if (start >= lim) {
+    throw Caml_builtin_exceptions.not_found;
+  } else {
+    var c = Caml_string.get(s, start);
+    var exit = 0;
+    if (c !== 40 && c !== 123) {
+      var stop = advance_to_non_alpha(s, start + 1 | 0);
+      return /* tuple */[
+              $$String.sub(s, start, stop - start | 0),
+              stop
+            ];
+    } else {
+      exit = 1;
+    }
+    if (exit === 1) {
+      var new_start = start + 1 | 0;
+      var stop$1 = advance_to_closing(c, closing(c), 0, s, new_start);
+      return /* tuple */[
+              $$String.sub(s, new_start, (stop$1 - start | 0) - 1 | 0),
+              stop$1 + 1 | 0
+            ];
+    }
+    
+  }
+}
+
+function add_substitute(b, f, s) {
+  var lim = s.length;
+  var _previous = /* " " */32;
+  var _i = 0;
+  while(true) {
+    var i = _i;
+    var previous = _previous;
+    if (i < lim) {
+      var current = Caml_string.get(s, i);
+      if (current !== 36) {
+        if (previous === /* "\\" */92) {
+          add_char(b, /* "\\" */92);
+          add_char(b, current);
+          _i = i + 1 | 0;
+          _previous = /* " " */32;
+          continue ;
+        } else if (current !== 92) {
+          add_char(b, current);
+          _i = i + 1 | 0;
+          _previous = current;
+          continue ;
+        } else {
+          _i = i + 1 | 0;
+          _previous = current;
+          continue ;
+        }
+      } else if (previous === /* "\\" */92) {
+        add_char(b, current);
+        _i = i + 1 | 0;
+        _previous = /* " " */32;
+        continue ;
+      } else {
+        var j = i + 1 | 0;
+        var match = find_ident(s, j, lim);
+        add_string(b, Curry._1(f, match[0]));
+        _i = match[1];
+        _previous = /* " " */32;
+        continue ;
+      }
+    } else if (previous === /* "\\" */92) {
+      return add_char(b, previous);
+    } else {
+      return 0;
+    }
+  };
+}
+
+exports.create = create;
+exports.contents = contents;
+exports.to_bytes = to_bytes;
+exports.sub = sub;
+exports.blit = blit;
+exports.nth = nth;
+exports.length = length;
+exports.clear = clear;
+exports.reset = reset;
+exports.add_char = add_char;
+exports.add_string = add_string;
+exports.add_bytes = add_bytes;
+exports.add_substring = add_substring;
+exports.add_subbytes = add_subbytes;
+exports.add_substitute = add_substitute;
+exports.add_buffer = add_buffer;
+exports.add_channel = add_channel;
+exports.output_buffer = output_buffer;
+/* No side effect */
+
+},{"./bytes.js":"../node_modules/bs-platform/lib/js/bytes.js","./curry.js":"../node_modules/bs-platform/lib/js/curry.js","./string.js":"../node_modules/bs-platform/lib/js/string.js","./pervasives.js":"../node_modules/bs-platform/lib/js/pervasives.js","./caml_string.js":"../node_modules/bs-platform/lib/js/caml_string.js","./caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js"}],"../node_modules/bs-platform/lib/js/caml_bytes.js":[function(require,module,exports) {
+'use strict';
+
+var Caml_builtin_exceptions = require("./caml_builtin_exceptions.js");
+
+function get(s, i) {
+  if (i < 0 || i >= s.length) {
+    throw [
+          Caml_builtin_exceptions.invalid_argument,
+          "index out of bounds"
+        ];
+  } else {
+    return s[i];
+  }
+}
+
+exports.get = get;
+/* No side effect */
+
+},{"./caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js"}],"../node_modules/bs-platform/lib/js/caml_float.js":[function(require,module,exports) {
+'use strict';
+
+
+function caml_int32_float_of_bits(x) {
+  var int32 = new Int32Array(/* array */[x]);
+  var float32 = new Float32Array(int32.buffer);
+  return float32[0];
+}
+
+function caml_int32_bits_of_float(x) {
+  var float32 = new Float32Array(/* array */[x]);
+  return new Int32Array(float32.buffer)[0];
+}
+
+function caml_classify_float(x) {
+  if (isFinite(x)) {
+    if (Math.abs(x) >= 2.2250738585072014e-308) {
+      return /* FP_normal */0;
+    } else if (x !== 0) {
+      return /* FP_subnormal */1;
+    } else {
+      return /* FP_zero */2;
+    }
+  } else if (isNaN(x)) {
+    return /* FP_nan */4;
+  } else {
+    return /* FP_infinite */3;
+  }
+}
+
+function caml_modf_float(x) {
+  if (isFinite(x)) {
+    var neg = 1 / x < 0;
+    var x$1 = Math.abs(x);
+    var i = Math.floor(x$1);
+    var f = x$1 - i;
+    if (neg) {
+      return /* tuple */[
+              -f,
+              -i
+            ];
+    } else {
+      return /* tuple */[
+              f,
+              i
+            ];
+    }
+  } else if (isNaN(x)) {
+    return /* tuple */[
+            NaN,
+            NaN
+          ];
+  } else {
+    return /* tuple */[
+            1 / x,
+            x
+          ];
+  }
+}
+
+function caml_ldexp_float(x, exp) {
+  var x$prime = x;
+  var exp$prime = exp;
+  if (exp$prime > 1023) {
+    exp$prime -= 1023;
+    x$prime = x$prime * Math.pow(2, 1023);
+    if (exp$prime > 1023) {
+      exp$prime -= 1023;
+      x$prime = x$prime * Math.pow(2, 1023);
+    }
+    
+  } else if (exp$prime < -1023) {
+    exp$prime += 1023;
+    x$prime = x$prime * Math.pow(2, -1023);
+  }
+  return x$prime * Math.pow(2, exp$prime);
+}
+
+function caml_frexp_float(x) {
+  if (x === 0 || !isFinite(x)) {
+    return /* tuple */[
+            x,
+            0
+          ];
+  } else {
+    var neg = x < 0;
+    var x$prime = Math.abs(x);
+    var exp = Math.floor(Math.LOG2E * Math.log(x$prime)) + 1;
+    x$prime = x$prime * Math.pow(2, -exp);
+    if (x$prime < 0.5) {
+      x$prime = x$prime * 2;
+      exp -= 1;
+    }
+    if (neg) {
+      x$prime = -x$prime;
+    }
+    return /* tuple */[
+            x$prime,
+            exp | 0
+          ];
+  }
+}
+
+function caml_copysign_float(x, y) {
+  var x$1 = Math.abs(x);
+  var y$1 = y === 0 ? 1 / y : y;
+  if (y$1 < 0) {
+    return -x$1;
+  } else {
+    return x$1;
+  }
+}
+
+function caml_expm1_float(x) {
+  var y = Math.exp(x);
+  var z = y - 1;
+  if (Math.abs(x) > 1) {
+    return z;
+  } else if (z === 0) {
+    return x;
+  } else {
+    return x * z / Math.log(y);
+  }
+}
+
+function caml_hypot_float(x, y) {
+  var x0 = Math.abs(x);
+  var y0 = Math.abs(y);
+  var a = Math.max(x0, y0);
+  var b = Math.min(x0, y0) / (
+    a !== 0 ? a : 1
+  );
+  return a * Math.sqrt(1 + b * b);
+}
+
+function caml_log10_float(x) {
+  return Math.LOG10E * Math.log(x);
+}
+
+exports.caml_int32_float_of_bits = caml_int32_float_of_bits;
+exports.caml_int32_bits_of_float = caml_int32_bits_of_float;
+exports.caml_classify_float = caml_classify_float;
+exports.caml_modf_float = caml_modf_float;
+exports.caml_ldexp_float = caml_ldexp_float;
+exports.caml_frexp_float = caml_frexp_float;
+exports.caml_copysign_float = caml_copysign_float;
+exports.caml_expm1_float = caml_expm1_float;
+exports.caml_hypot_float = caml_hypot_float;
+exports.caml_log10_float = caml_log10_float;
+/* No side effect */
+
+},{}],"../node_modules/bs-platform/lib/js/camlinternalFormat.js":[function(require,module,exports) {
+'use strict';
+
+var Char = require("./char.js");
+var Block = require("./block.js");
+var Bytes = require("./bytes.js");
+var Curry = require("./curry.js");
+var $$Buffer = require("./buffer.js");
+var Js_exn = require("./js_exn.js");
+var $$String = require("./string.js");
+var Caml_io = require("./caml_io.js");
+var Caml_obj = require("./caml_obj.js");
+var Caml_bytes = require("./caml_bytes.js");
+var Caml_float = require("./caml_float.js");
+var Caml_int32 = require("./caml_int32.js");
+var Pervasives = require("./pervasives.js");
+var Caml_format = require("./caml_format.js");
+var Caml_string = require("./caml_string.js");
+var Caml_primitive = require("./caml_primitive.js");
+var Caml_exceptions = require("./caml_exceptions.js");
+var Caml_builtin_exceptions = require("./caml_builtin_exceptions.js");
+var CamlinternalFormatBasics = require("./camlinternalFormatBasics.js");
+
+function create_char_set() {
+  return Bytes.make(32, /* "\000" */0);
+}
+
+function add_in_char_set(char_set, c) {
+  var str_ind = (c >>> 3);
+  var mask = (1 << (c & 7));
+  char_set[str_ind] = Pervasives.char_of_int(Caml_bytes.get(char_set, str_ind) | mask);
+  return /* () */0;
+}
+
+var freeze_char_set = Bytes.to_string;
+
+function rev_char_set(char_set) {
+  var char_set$prime = Bytes.make(32, /* "\000" */0);
+  for(var i = 0; i <= 31; ++i){
+    char_set$prime[i] = Pervasives.char_of_int(Caml_string.get(char_set, i) ^ 255);
+  }
+  return Caml_string.bytes_to_string(char_set$prime);
+}
+
+function is_in_char_set(char_set, c) {
+  var str_ind = (c >>> 3);
+  var mask = (1 << (c & 7));
+  return (Caml_string.get(char_set, str_ind) & mask) !== 0;
+}
+
+function pad_of_pad_opt(pad_opt) {
+  if (pad_opt !== undefined) {
+    return /* Lit_padding */Block.__(0, [
+              /* Right */1,
+              pad_opt
+            ]);
+  } else {
+    return /* No_padding */0;
+  }
+}
+
+function prec_of_prec_opt(prec_opt) {
+  if (prec_opt !== undefined) {
+    return /* Lit_precision */[prec_opt];
+  } else {
+    return /* No_precision */0;
+  }
+}
+
+function param_format_of_ignored_format(ign, fmt) {
+  if (typeof ign === "number") {
+    switch (ign) {
+      case 0 : 
+          return /* Param_format_EBB */[/* Char */Block.__(0, [fmt])];
+      case 1 : 
+          return /* Param_format_EBB */[/* Caml_char */Block.__(1, [fmt])];
+      case 2 : 
+          return /* Param_format_EBB */[/* Bool */Block.__(9, [fmt])];
+      case 3 : 
+          return /* Param_format_EBB */[/* Reader */Block.__(19, [fmt])];
+      case 4 : 
+          return /* Param_format_EBB */[/* Scan_next_char */Block.__(22, [fmt])];
+      
+    }
+  } else {
+    switch (ign.tag | 0) {
+      case 0 : 
+          return /* Param_format_EBB */[/* String */Block.__(2, [
+                      pad_of_pad_opt(ign[0]),
+                      fmt
+                    ])];
+      case 1 : 
+          return /* Param_format_EBB */[/* Caml_string */Block.__(3, [
+                      pad_of_pad_opt(ign[0]),
+                      fmt
+                    ])];
+      case 2 : 
+          return /* Param_format_EBB */[/* Int */Block.__(4, [
+                      ign[0],
+                      pad_of_pad_opt(ign[1]),
+                      /* No_precision */0,
+                      fmt
+                    ])];
+      case 3 : 
+          return /* Param_format_EBB */[/* Int32 */Block.__(5, [
+                      ign[0],
+                      pad_of_pad_opt(ign[1]),
+                      /* No_precision */0,
+                      fmt
+                    ])];
+      case 4 : 
+          return /* Param_format_EBB */[/* Nativeint */Block.__(6, [
+                      ign[0],
+                      pad_of_pad_opt(ign[1]),
+                      /* No_precision */0,
+                      fmt
+                    ])];
+      case 5 : 
+          return /* Param_format_EBB */[/* Int64 */Block.__(7, [
+                      ign[0],
+                      pad_of_pad_opt(ign[1]),
+                      /* No_precision */0,
+                      fmt
+                    ])];
+      case 6 : 
+          return /* Param_format_EBB */[/* Float */Block.__(8, [
+                      /* Float_f */0,
+                      pad_of_pad_opt(ign[0]),
+                      prec_of_prec_opt(ign[1]),
+                      fmt
+                    ])];
+      case 7 : 
+          return /* Param_format_EBB */[/* Format_arg */Block.__(13, [
+                      ign[0],
+                      ign[1],
+                      fmt
+                    ])];
+      case 8 : 
+          return /* Param_format_EBB */[/* Format_subst */Block.__(14, [
+                      ign[0],
+                      ign[1],
+                      fmt
+                    ])];
+      case 9 : 
+          return /* Param_format_EBB */[/* Scan_char_set */Block.__(20, [
+                      ign[0],
+                      ign[1],
+                      fmt
+                    ])];
+      case 10 : 
+          return /* Param_format_EBB */[/* Scan_get_counter */Block.__(21, [
+                      ign[0],
+                      fmt
+                    ])];
+      
+    }
+  }
+}
+
+function buffer_check_size(buf, overhead) {
+  var len = buf[/* bytes */1].length;
+  var min_len = buf[/* ind */0] + overhead | 0;
+  if (min_len > len) {
+    var new_len = Caml_primitive.caml_int_max((len << 1), min_len);
+    var new_str = Caml_string.caml_create_string(new_len);
+    Bytes.blit(buf[/* bytes */1], 0, new_str, 0, len);
+    buf[/* bytes */1] = new_str;
+    return /* () */0;
+  } else {
+    return 0;
+  }
+}
+
+function buffer_add_char(buf, c) {
+  buffer_check_size(buf, 1);
+  buf[/* bytes */1][buf[/* ind */0]] = c;
+  buf[/* ind */0] = buf[/* ind */0] + 1 | 0;
+  return /* () */0;
+}
+
+function buffer_add_string(buf, s) {
+  var str_len = s.length;
+  buffer_check_size(buf, str_len);
+  $$String.blit(s, 0, buf[/* bytes */1], buf[/* ind */0], str_len);
+  buf[/* ind */0] = buf[/* ind */0] + str_len | 0;
+  return /* () */0;
+}
+
+function buffer_contents(buf) {
+  return Bytes.sub_string(buf[/* bytes */1], 0, buf[/* ind */0]);
+}
+
+function char_of_iconv(iconv) {
+  switch (iconv) {
+    case 0 : 
+    case 1 : 
+    case 2 : 
+        return /* "d" */100;
+    case 3 : 
+    case 4 : 
+    case 5 : 
+        return /* "i" */105;
+    case 6 : 
+    case 7 : 
+        return /* "x" */120;
+    case 8 : 
+    case 9 : 
+        return /* "X" */88;
+    case 10 : 
+    case 11 : 
+        return /* "o" */111;
+    case 12 : 
+        return /* "u" */117;
+    
+  }
+}
+
+function char_of_fconv(fconv) {
+  switch (fconv) {
+    case 0 : 
+    case 1 : 
+    case 2 : 
+        return /* "f" */102;
+    case 3 : 
+    case 4 : 
+    case 5 : 
+        return /* "e" */101;
+    case 6 : 
+    case 7 : 
+    case 8 : 
+        return /* "E" */69;
+    case 9 : 
+    case 10 : 
+    case 11 : 
+        return /* "g" */103;
+    case 12 : 
+    case 13 : 
+    case 14 : 
+        return /* "G" */71;
+    case 15 : 
+        return /* "F" */70;
+    
+  }
+}
+
+function char_of_counter(counter) {
+  switch (counter) {
+    case 0 : 
+        return /* "l" */108;
+    case 1 : 
+        return /* "n" */110;
+    case 2 : 
+        return /* "N" */78;
+    
+  }
+}
+
+function bprint_char_set(buf, char_set) {
+  var print_char = function (buf, i) {
+    var c = Pervasives.char_of_int(i);
+    if (c !== 37) {
+      if (c !== 64) {
+        return buffer_add_char(buf, c);
+      } else {
+        buffer_add_char(buf, /* "%" */37);
+        return buffer_add_char(buf, /* "@" */64);
+      }
+    } else {
+      buffer_add_char(buf, /* "%" */37);
+      return buffer_add_char(buf, /* "%" */37);
+    }
+  };
+  var print_out = function (set, _i) {
+    while(true) {
+      var i = _i;
+      if (i < 256) {
+        if (is_in_char_set(set, Pervasives.char_of_int(i))) {
+          var set$1 = set;
+          var i$1 = i;
+          var match = Pervasives.char_of_int(i$1);
+          var switcher = match - 45 | 0;
+          if (switcher > 48 || switcher < 0) {
+            if (switcher >= 210) {
+              return print_char(buf, 255);
+            } else {
+              return print_second(set$1, i$1 + 1 | 0);
+            }
+          } else if (switcher > 47 || switcher < 1) {
+            return print_out(set$1, i$1 + 1 | 0);
+          } else {
+            return print_second(set$1, i$1 + 1 | 0);
+          }
+        } else {
+          _i = i + 1 | 0;
+          continue ;
+        }
+      } else {
+        return 0;
+      }
+    };
+  };
+  var print_second = function (set, i) {
+    if (is_in_char_set(set, Pervasives.char_of_int(i))) {
+      var match = Pervasives.char_of_int(i);
+      var exit = 0;
+      var switcher = match - 45 | 0;
+      if (switcher > 48 || switcher < 0) {
+        if (switcher >= 210) {
+          print_char(buf, 254);
+          return print_char(buf, 255);
+        } else {
+          exit = 1;
+        }
+      } else if ((switcher > 47 || switcher < 1) && !is_in_char_set(set, Pervasives.char_of_int(i + 1 | 0))) {
+        print_char(buf, i - 1 | 0);
+        return print_out(set, i + 1 | 0);
+      } else {
+        exit = 1;
+      }
+      if (exit === 1) {
+        if (is_in_char_set(set, Pervasives.char_of_int(i + 1 | 0))) {
+          var set$1 = set;
+          var i$1 = i - 1 | 0;
+          var _j = i + 2 | 0;
+          while(true) {
+            var j = _j;
+            if (j === 256 || !is_in_char_set(set$1, Pervasives.char_of_int(j))) {
+              print_char(buf, i$1);
+              print_char(buf, /* "-" */45);
+              print_char(buf, j - 1 | 0);
+              if (j < 256) {
+                return print_out(set$1, j + 1 | 0);
+              } else {
+                return 0;
+              }
+            } else {
+              _j = j + 1 | 0;
+              continue ;
+            }
+          };
+        } else {
+          print_char(buf, i - 1 | 0);
+          print_char(buf, i);
+          return print_out(set, i + 2 | 0);
+        }
+      }
+      
+    } else {
+      print_char(buf, i - 1 | 0);
+      return print_out(set, i + 1 | 0);
+    }
+  };
+  var print_start = function (set) {
+    var is_alone = function (c) {
+      var before = Char.chr(c - 1 | 0);
+      var after = Char.chr(c + 1 | 0);
+      if (is_in_char_set(set, c)) {
+        return !(is_in_char_set(set, before) && is_in_char_set(set, after));
+      } else {
+        return false;
+      }
+    };
+    if (is_alone(/* "]" */93)) {
+      buffer_add_char(buf, /* "]" */93);
+    }
+    print_out(set, 1);
+    if (is_alone(/* "-" */45)) {
+      return buffer_add_char(buf, /* "-" */45);
+    } else {
+      return 0;
+    }
+  };
+  buffer_add_char(buf, /* "[" */91);
+  print_start(is_in_char_set(char_set, /* "\000" */0) ? (buffer_add_char(buf, /* "^" */94), rev_char_set(char_set)) : char_set);
+  return buffer_add_char(buf, /* "]" */93);
+}
+
+function bprint_padty(buf, padty) {
+  switch (padty) {
+    case 0 : 
+        return buffer_add_char(buf, /* "-" */45);
+    case 1 : 
+        return /* () */0;
+    case 2 : 
+        return buffer_add_char(buf, /* "0" */48);
+    
+  }
+}
+
+function bprint_ignored_flag(buf, ign_flag) {
+  if (ign_flag) {
+    return buffer_add_char(buf, /* "_" */95);
+  } else {
+    return 0;
+  }
+}
+
+function bprint_pad_opt(buf, pad_opt) {
+  if (pad_opt !== undefined) {
+    return buffer_add_string(buf, String(pad_opt));
+  } else {
+    return /* () */0;
+  }
+}
+
+function bprint_padding(buf, pad) {
+  if (typeof pad === "number") {
+    return /* () */0;
+  } else {
+    bprint_padty(buf, pad[0]);
+    if (pad.tag) {
+      return buffer_add_char(buf, /* "*" */42);
+    } else {
+      return buffer_add_string(buf, String(pad[1]));
+    }
+  }
+}
+
+function bprint_precision(buf, prec) {
+  if (typeof prec === "number") {
+    if (prec !== 0) {
+      return buffer_add_string(buf, ".*");
+    } else {
+      return /* () */0;
+    }
+  } else {
+    buffer_add_char(buf, /* "." */46);
+    return buffer_add_string(buf, String(prec[0]));
+  }
+}
+
+function bprint_iconv_flag(buf, iconv) {
+  switch (iconv) {
+    case 1 : 
+    case 4 : 
+        return buffer_add_char(buf, /* "+" */43);
+    case 2 : 
+    case 5 : 
+        return buffer_add_char(buf, /* " " */32);
+    case 7 : 
+    case 9 : 
+    case 11 : 
+        return buffer_add_char(buf, /* "#" */35);
+    case 0 : 
+    case 3 : 
+    case 6 : 
+    case 8 : 
+    case 10 : 
+    case 12 : 
+        return /* () */0;
+    
+  }
+}
+
+function bprint_int_fmt(buf, ign_flag, iconv, pad, prec) {
+  buffer_add_char(buf, /* "%" */37);
+  bprint_ignored_flag(buf, ign_flag);
+  bprint_iconv_flag(buf, iconv);
+  bprint_padding(buf, pad);
+  bprint_precision(buf, prec);
+  return buffer_add_char(buf, char_of_iconv(iconv));
+}
+
+function bprint_altint_fmt(buf, ign_flag, iconv, pad, prec, c) {
+  buffer_add_char(buf, /* "%" */37);
+  bprint_ignored_flag(buf, ign_flag);
+  bprint_iconv_flag(buf, iconv);
+  bprint_padding(buf, pad);
+  bprint_precision(buf, prec);
+  buffer_add_char(buf, c);
+  return buffer_add_char(buf, char_of_iconv(iconv));
+}
+
+function bprint_fconv_flag(buf, fconv) {
+  switch (fconv) {
+    case 1 : 
+    case 4 : 
+    case 7 : 
+    case 10 : 
+    case 13 : 
+        return buffer_add_char(buf, /* "+" */43);
+    case 2 : 
+    case 5 : 
+    case 8 : 
+    case 11 : 
+    case 14 : 
+        return buffer_add_char(buf, /* " " */32);
+    case 0 : 
+    case 3 : 
+    case 6 : 
+    case 9 : 
+    case 12 : 
+    case 15 : 
+        return /* () */0;
+    
+  }
+}
+
+function bprint_float_fmt(buf, ign_flag, fconv, pad, prec) {
+  buffer_add_char(buf, /* "%" */37);
+  bprint_ignored_flag(buf, ign_flag);
+  bprint_fconv_flag(buf, fconv);
+  bprint_padding(buf, pad);
+  bprint_precision(buf, prec);
+  return buffer_add_char(buf, char_of_fconv(fconv));
+}
+
+function string_of_formatting_lit(formatting_lit) {
+  if (typeof formatting_lit === "number") {
+    switch (formatting_lit) {
+      case 0 : 
+          return "@]";
+      case 1 : 
+          return "@}";
+      case 2 : 
+          return "@?";
+      case 3 : 
+          return "@\n";
+      case 4 : 
+          return "@.";
+      case 5 : 
+          return "@@";
+      case 6 : 
+          return "@%";
+      
+    }
+  } else {
+    switch (formatting_lit.tag | 0) {
+      case 0 : 
+      case 1 : 
+          return formatting_lit[0];
+      case 2 : 
+          return "@" + Caml_string.bytes_to_string(Bytes.make(1, formatting_lit[0]));
+      
+    }
+  }
+}
+
+function string_of_formatting_gen(formatting_gen) {
+  return formatting_gen[0][1];
+}
+
+function bprint_char_literal(buf, chr) {
+  if (chr !== 37) {
+    return buffer_add_char(buf, chr);
+  } else {
+    return buffer_add_string(buf, "%%");
+  }
+}
+
+function bprint_string_literal(buf, str) {
+  for(var i = 0 ,i_finish = str.length - 1 | 0; i <= i_finish; ++i){
+    bprint_char_literal(buf, Caml_string.get(str, i));
+  }
+  return /* () */0;
+}
+
+function bprint_fmtty(buf, _fmtty) {
+  while(true) {
+    var fmtty = _fmtty;
+    if (typeof fmtty === "number") {
+      return /* () */0;
+    } else {
+      switch (fmtty.tag | 0) {
+        case 0 : 
+            buffer_add_string(buf, "%c");
+            _fmtty = fmtty[0];
+            continue ;
+        case 1 : 
+            buffer_add_string(buf, "%s");
+            _fmtty = fmtty[0];
+            continue ;
+        case 2 : 
+            buffer_add_string(buf, "%i");
+            _fmtty = fmtty[0];
+            continue ;
+        case 3 : 
+            buffer_add_string(buf, "%li");
+            _fmtty = fmtty[0];
+            continue ;
+        case 4 : 
+            buffer_add_string(buf, "%ni");
+            _fmtty = fmtty[0];
+            continue ;
+        case 5 : 
+            buffer_add_string(buf, "%Li");
+            _fmtty = fmtty[0];
+            continue ;
+        case 6 : 
+            buffer_add_string(buf, "%f");
+            _fmtty = fmtty[0];
+            continue ;
+        case 7 : 
+            buffer_add_string(buf, "%B");
+            _fmtty = fmtty[0];
+            continue ;
+        case 8 : 
+            buffer_add_string(buf, "%{");
+            bprint_fmtty(buf, fmtty[0]);
+            buffer_add_string(buf, "%}");
+            _fmtty = fmtty[1];
+            continue ;
+        case 9 : 
+            buffer_add_string(buf, "%(");
+            bprint_fmtty(buf, fmtty[0]);
+            buffer_add_string(buf, "%)");
+            _fmtty = fmtty[2];
+            continue ;
+        case 10 : 
+            buffer_add_string(buf, "%a");
+            _fmtty = fmtty[0];
+            continue ;
+        case 11 : 
+            buffer_add_string(buf, "%t");
+            _fmtty = fmtty[0];
+            continue ;
+        case 12 : 
+            buffer_add_string(buf, "%?");
+            _fmtty = fmtty[0];
+            continue ;
+        case 13 : 
+            buffer_add_string(buf, "%r");
+            _fmtty = fmtty[0];
+            continue ;
+        case 14 : 
+            buffer_add_string(buf, "%_r");
+            _fmtty = fmtty[0];
+            continue ;
+        
+      }
+    }
+  };
+}
+
+function int_of_custom_arity(param) {
+  if (param) {
+    return 1 + int_of_custom_arity(param[0]) | 0;
+  } else {
+    return 0;
+  }
+}
+
+function bprint_fmt(buf, fmt) {
+  var _fmt = fmt;
+  var _ign_flag = false;
+  while(true) {
+    var ign_flag = _ign_flag;
+    var fmt$1 = _fmt;
+    if (typeof fmt$1 === "number") {
+      return /* () */0;
+    } else {
+      switch (fmt$1.tag | 0) {
+        case 0 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            buffer_add_char(buf, /* "c" */99);
+            _ign_flag = false;
+            _fmt = fmt$1[0];
+            continue ;
+        case 1 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            buffer_add_char(buf, /* "C" */67);
+            _ign_flag = false;
+            _fmt = fmt$1[0];
+            continue ;
+        case 2 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            bprint_padding(buf, fmt$1[0]);
+            buffer_add_char(buf, /* "s" */115);
+            _ign_flag = false;
+            _fmt = fmt$1[1];
+            continue ;
+        case 3 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            bprint_padding(buf, fmt$1[0]);
+            buffer_add_char(buf, /* "S" */83);
+            _ign_flag = false;
+            _fmt = fmt$1[1];
+            continue ;
+        case 4 : 
+            bprint_int_fmt(buf, ign_flag, fmt$1[0], fmt$1[1], fmt$1[2]);
+            _ign_flag = false;
+            _fmt = fmt$1[3];
+            continue ;
+        case 5 : 
+            bprint_altint_fmt(buf, ign_flag, fmt$1[0], fmt$1[1], fmt$1[2], /* "l" */108);
+            _ign_flag = false;
+            _fmt = fmt$1[3];
+            continue ;
+        case 6 : 
+            bprint_altint_fmt(buf, ign_flag, fmt$1[0], fmt$1[1], fmt$1[2], /* "n" */110);
+            _ign_flag = false;
+            _fmt = fmt$1[3];
+            continue ;
+        case 7 : 
+            bprint_altint_fmt(buf, ign_flag, fmt$1[0], fmt$1[1], fmt$1[2], /* "L" */76);
+            _ign_flag = false;
+            _fmt = fmt$1[3];
+            continue ;
+        case 8 : 
+            bprint_float_fmt(buf, ign_flag, fmt$1[0], fmt$1[1], fmt$1[2]);
+            _ign_flag = false;
+            _fmt = fmt$1[3];
+            continue ;
+        case 9 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            buffer_add_char(buf, /* "B" */66);
+            _ign_flag = false;
+            _fmt = fmt$1[0];
+            continue ;
+        case 10 : 
+            buffer_add_string(buf, "%!");
+            _fmt = fmt$1[0];
+            continue ;
+        case 11 : 
+            bprint_string_literal(buf, fmt$1[0]);
+            _fmt = fmt$1[1];
+            continue ;
+        case 12 : 
+            bprint_char_literal(buf, fmt$1[0]);
+            _fmt = fmt$1[1];
+            continue ;
+        case 13 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            bprint_pad_opt(buf, fmt$1[0]);
+            buffer_add_char(buf, /* "{" */123);
+            bprint_fmtty(buf, fmt$1[1]);
+            buffer_add_char(buf, /* "%" */37);
+            buffer_add_char(buf, /* "}" */125);
+            _ign_flag = false;
+            _fmt = fmt$1[2];
+            continue ;
+        case 14 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            bprint_pad_opt(buf, fmt$1[0]);
+            buffer_add_char(buf, /* "(" */40);
+            bprint_fmtty(buf, fmt$1[1]);
+            buffer_add_char(buf, /* "%" */37);
+            buffer_add_char(buf, /* ")" */41);
+            _ign_flag = false;
+            _fmt = fmt$1[2];
+            continue ;
+        case 15 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            buffer_add_char(buf, /* "a" */97);
+            _ign_flag = false;
+            _fmt = fmt$1[0];
+            continue ;
+        case 16 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            buffer_add_char(buf, /* "t" */116);
+            _ign_flag = false;
+            _fmt = fmt$1[0];
+            continue ;
+        case 17 : 
+            bprint_string_literal(buf, string_of_formatting_lit(fmt$1[0]));
+            _fmt = fmt$1[1];
+            continue ;
+        case 18 : 
+            bprint_string_literal(buf, "@{");
+            bprint_string_literal(buf, string_of_formatting_gen(fmt$1[0]));
+            _fmt = fmt$1[1];
+            continue ;
+        case 19 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            buffer_add_char(buf, /* "r" */114);
+            _ign_flag = false;
+            _fmt = fmt$1[0];
+            continue ;
+        case 20 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            bprint_pad_opt(buf, fmt$1[0]);
+            bprint_char_set(buf, fmt$1[1]);
+            _ign_flag = false;
+            _fmt = fmt$1[2];
+            continue ;
+        case 21 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            buffer_add_char(buf, char_of_counter(fmt$1[0]));
+            _ign_flag = false;
+            _fmt = fmt$1[1];
+            continue ;
+        case 22 : 
+            buffer_add_char(buf, /* "%" */37);
+            bprint_ignored_flag(buf, ign_flag);
+            bprint_string_literal(buf, "0c");
+            _ign_flag = false;
+            _fmt = fmt$1[0];
+            continue ;
+        case 23 : 
+            var match = param_format_of_ignored_format(fmt$1[0], fmt$1[1]);
+            _ign_flag = true;
+            _fmt = match[0];
+            continue ;
+        case 24 : 
+            for(var _i = 1 ,_i_finish = int_of_custom_arity(fmt$1[0]); _i <= _i_finish; ++_i){
+              buffer_add_char(buf, /* "%" */37);
+              bprint_ignored_flag(buf, ign_flag);
+              buffer_add_char(buf, /* "?" */63);
+            }
+            _ign_flag = false;
+            _fmt = fmt$1[2];
+            continue ;
+        
+      }
+    }
+  };
+}
+
+function string_of_fmt(fmt) {
+  var buf = /* record */[
+    /* ind */0,
+    /* bytes */Caml_string.caml_create_string(16)
+  ];
+  bprint_fmt(buf, fmt);
+  return buffer_contents(buf);
+}
+
+function symm(param) {
+  if (typeof param === "number") {
+    return /* End_of_fmtty */0;
+  } else {
+    switch (param.tag | 0) {
+      case 0 : 
+          return /* Char_ty */Block.__(0, [symm(param[0])]);
+      case 1 : 
+          return /* String_ty */Block.__(1, [symm(param[0])]);
+      case 2 : 
+          return /* Int_ty */Block.__(2, [symm(param[0])]);
+      case 3 : 
+          return /* Int32_ty */Block.__(3, [symm(param[0])]);
+      case 4 : 
+          return /* Nativeint_ty */Block.__(4, [symm(param[0])]);
+      case 5 : 
+          return /* Int64_ty */Block.__(5, [symm(param[0])]);
+      case 6 : 
+          return /* Float_ty */Block.__(6, [symm(param[0])]);
+      case 7 : 
+          return /* Bool_ty */Block.__(7, [symm(param[0])]);
+      case 8 : 
+          return /* Format_arg_ty */Block.__(8, [
+                    param[0],
+                    symm(param[1])
+                  ]);
+      case 9 : 
+          return /* Format_subst_ty */Block.__(9, [
+                    param[1],
+                    param[0],
+                    symm(param[2])
+                  ]);
+      case 10 : 
+          return /* Alpha_ty */Block.__(10, [symm(param[0])]);
+      case 11 : 
+          return /* Theta_ty */Block.__(11, [symm(param[0])]);
+      case 12 : 
+          return /* Any_ty */Block.__(12, [symm(param[0])]);
+      case 13 : 
+          return /* Reader_ty */Block.__(13, [symm(param[0])]);
+      case 14 : 
+          return /* Ignored_reader_ty */Block.__(14, [symm(param[0])]);
+      
+    }
+  }
+}
+
+function fmtty_rel_det(param) {
+  if (typeof param === "number") {
+    return /* tuple */[
+            (function () {
+                return /* Refl */0;
+              }),
+            (function () {
+                return /* Refl */0;
+              }),
+            (function () {
+                return /* Refl */0;
+              }),
+            (function () {
+                return /* Refl */0;
+              })
+          ];
+  } else {
+    switch (param.tag | 0) {
+      case 0 : 
+          var match = fmtty_rel_det(param[0]);
+          var af = match[1];
+          var fa = match[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match[2],
+                  match[3]
+                ];
+      case 1 : 
+          var match$1 = fmtty_rel_det(param[0]);
+          var af$1 = match$1[1];
+          var fa$1 = match$1[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$1, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$1, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$1[2],
+                  match$1[3]
+                ];
+      case 2 : 
+          var match$2 = fmtty_rel_det(param[0]);
+          var af$2 = match$2[1];
+          var fa$2 = match$2[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$2, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$2, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$2[2],
+                  match$2[3]
+                ];
+      case 3 : 
+          var match$3 = fmtty_rel_det(param[0]);
+          var af$3 = match$3[1];
+          var fa$3 = match$3[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$3, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$3, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$3[2],
+                  match$3[3]
+                ];
+      case 4 : 
+          var match$4 = fmtty_rel_det(param[0]);
+          var af$4 = match$4[1];
+          var fa$4 = match$4[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$4, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$4, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$4[2],
+                  match$4[3]
+                ];
+      case 5 : 
+          var match$5 = fmtty_rel_det(param[0]);
+          var af$5 = match$5[1];
+          var fa$5 = match$5[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$5, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$5, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$5[2],
+                  match$5[3]
+                ];
+      case 6 : 
+          var match$6 = fmtty_rel_det(param[0]);
+          var af$6 = match$6[1];
+          var fa$6 = match$6[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$6, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$6, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$6[2],
+                  match$6[3]
+                ];
+      case 7 : 
+          var match$7 = fmtty_rel_det(param[0]);
+          var af$7 = match$7[1];
+          var fa$7 = match$7[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$7, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$7, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$7[2],
+                  match$7[3]
+                ];
+      case 8 : 
+          var match$8 = fmtty_rel_det(param[1]);
+          var af$8 = match$8[1];
+          var fa$8 = match$8[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$8, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$8, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$8[2],
+                  match$8[3]
+                ];
+      case 9 : 
+          var match$9 = fmtty_rel_det(param[2]);
+          var de = match$9[3];
+          var ed = match$9[2];
+          var af$9 = match$9[1];
+          var fa$9 = match$9[0];
+          var ty = trans(symm(param[0]), param[1]);
+          var match$10 = fmtty_rel_det(ty);
+          var jd = match$10[3];
+          var dj = match$10[2];
+          var ga = match$10[1];
+          var ag = match$10[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$9, /* Refl */0);
+                      Curry._1(ag, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(ga, /* Refl */0);
+                      Curry._1(af$9, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(ed, /* Refl */0);
+                      Curry._1(dj, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(jd, /* Refl */0);
+                      Curry._1(de, /* Refl */0);
+                      return /* Refl */0;
+                    })
+                ];
+      case 10 : 
+          var match$11 = fmtty_rel_det(param[0]);
+          var af$10 = match$11[1];
+          var fa$10 = match$11[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$10, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$10, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$11[2],
+                  match$11[3]
+                ];
+      case 11 : 
+          var match$12 = fmtty_rel_det(param[0]);
+          var af$11 = match$12[1];
+          var fa$11 = match$12[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$11, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$11, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$12[2],
+                  match$12[3]
+                ];
+      case 12 : 
+          var match$13 = fmtty_rel_det(param[0]);
+          var af$12 = match$13[1];
+          var fa$12 = match$13[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$12, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$12, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  match$13[2],
+                  match$13[3]
+                ];
+      case 13 : 
+          var match$14 = fmtty_rel_det(param[0]);
+          var de$1 = match$14[3];
+          var ed$1 = match$14[2];
+          var af$13 = match$14[1];
+          var fa$13 = match$14[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$13, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$13, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(ed$1, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(de$1, /* Refl */0);
+                      return /* Refl */0;
+                    })
+                ];
+      case 14 : 
+          var match$15 = fmtty_rel_det(param[0]);
+          var de$2 = match$15[3];
+          var ed$2 = match$15[2];
+          var af$14 = match$15[1];
+          var fa$14 = match$15[0];
+          return /* tuple */[
+                  (function () {
+                      Curry._1(fa$14, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(af$14, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(ed$2, /* Refl */0);
+                      return /* Refl */0;
+                    }),
+                  (function () {
+                      Curry._1(de$2, /* Refl */0);
+                      return /* Refl */0;
+                    })
+                ];
+      
+    }
+  }
+}
+
+function trans(ty1, ty2) {
+  var exit = 0;
+  if (typeof ty1 === "number") {
+    if (typeof ty2 === "number") {
+      return /* End_of_fmtty */0;
+    } else {
+      switch (ty2.tag | 0) {
+        case 8 : 
+            exit = 6;
+            break;
+        case 9 : 
+            exit = 7;
+            break;
+        case 10 : 
+            exit = 1;
+            break;
+        case 11 : 
+            exit = 2;
+            break;
+        case 12 : 
+            exit = 3;
+            break;
+        case 13 : 
+            exit = 4;
+            break;
+        case 14 : 
+            exit = 5;
+            break;
+        default:
+          throw [
+                Caml_builtin_exceptions.assert_failure,
+                /* tuple */[
+                  "camlinternalFormat.ml",
+                  816,
+                  23
+                ]
+              ];
+      }
+    }
+  } else {
+    switch (ty1.tag | 0) {
+      case 0 : 
+          if (typeof ty2 === "number") {
+            exit = 8;
+          } else {
+            switch (ty2.tag | 0) {
+              case 0 : 
+                  return /* Char_ty */Block.__(0, [trans(ty1[0], ty2[0])]);
+              case 8 : 
+                  exit = 6;
+                  break;
+              case 9 : 
+                  exit = 7;
+                  break;
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              
+            }
+          }
+          break;
+      case 1 : 
+          if (typeof ty2 === "number") {
+            exit = 8;
+          } else {
+            switch (ty2.tag | 0) {
+              case 1 : 
+                  return /* String_ty */Block.__(1, [trans(ty1[0], ty2[0])]);
+              case 8 : 
+                  exit = 6;
+                  break;
+              case 9 : 
+                  exit = 7;
+                  break;
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              
+            }
+          }
+          break;
+      case 2 : 
+          if (typeof ty2 === "number") {
+            exit = 8;
+          } else {
+            switch (ty2.tag | 0) {
+              case 2 : 
+                  return /* Int_ty */Block.__(2, [trans(ty1[0], ty2[0])]);
+              case 8 : 
+                  exit = 6;
+                  break;
+              case 9 : 
+                  exit = 7;
+                  break;
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              
+            }
+          }
+          break;
+      case 3 : 
+          if (typeof ty2 === "number") {
+            exit = 8;
+          } else {
+            switch (ty2.tag | 0) {
+              case 3 : 
+                  return /* Int32_ty */Block.__(3, [trans(ty1[0], ty2[0])]);
+              case 8 : 
+                  exit = 6;
+                  break;
+              case 9 : 
+                  exit = 7;
+                  break;
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              
+            }
+          }
+          break;
+      case 4 : 
+          if (typeof ty2 === "number") {
+            exit = 8;
+          } else {
+            switch (ty2.tag | 0) {
+              case 4 : 
+                  return /* Nativeint_ty */Block.__(4, [trans(ty1[0], ty2[0])]);
+              case 8 : 
+                  exit = 6;
+                  break;
+              case 9 : 
+                  exit = 7;
+                  break;
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              
+            }
+          }
+          break;
+      case 5 : 
+          if (typeof ty2 === "number") {
+            exit = 8;
+          } else {
+            switch (ty2.tag | 0) {
+              case 5 : 
+                  return /* Int64_ty */Block.__(5, [trans(ty1[0], ty2[0])]);
+              case 8 : 
+                  exit = 6;
+                  break;
+              case 9 : 
+                  exit = 7;
+                  break;
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              
+            }
+          }
+          break;
+      case 6 : 
+          if (typeof ty2 === "number") {
+            exit = 8;
+          } else {
+            switch (ty2.tag | 0) {
+              case 6 : 
+                  return /* Float_ty */Block.__(6, [trans(ty1[0], ty2[0])]);
+              case 8 : 
+                  exit = 6;
+                  break;
+              case 9 : 
+                  exit = 7;
+                  break;
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              
+            }
+          }
+          break;
+      case 7 : 
+          if (typeof ty2 === "number") {
+            exit = 8;
+          } else {
+            switch (ty2.tag | 0) {
+              case 7 : 
+                  return /* Bool_ty */Block.__(7, [trans(ty1[0], ty2[0])]);
+              case 8 : 
+                  exit = 6;
+                  break;
+              case 9 : 
+                  exit = 7;
+                  break;
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              
+            }
+          }
+          break;
+      case 8 : 
+          if (typeof ty2 === "number") {
+            throw [
+                  Caml_builtin_exceptions.assert_failure,
+                  /* tuple */[
+                    "camlinternalFormat.ml",
+                    802,
+                    26
+                  ]
+                ];
+          } else {
+            switch (ty2.tag | 0) {
+              case 8 : 
+                  return /* Format_arg_ty */Block.__(8, [
+                            trans(ty1[0], ty2[0]),
+                            trans(ty1[1], ty2[1])
+                          ]);
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              default:
+                throw [
+                      Caml_builtin_exceptions.assert_failure,
+                      /* tuple */[
+                        "camlinternalFormat.ml",
+                        802,
+                        26
+                      ]
+                    ];
+            }
+          }
+          break;
+      case 9 : 
+          if (typeof ty2 === "number") {
+            throw [
+                  Caml_builtin_exceptions.assert_failure,
+                  /* tuple */[
+                    "camlinternalFormat.ml",
+                    812,
+                    28
+                  ]
+                ];
+          } else {
+            switch (ty2.tag | 0) {
+              case 8 : 
+                  exit = 6;
+                  break;
+              case 9 : 
+                  var ty = trans(symm(ty1[1]), ty2[0]);
+                  var match = fmtty_rel_det(ty);
+                  Curry._1(match[1], /* Refl */0);
+                  Curry._1(match[3], /* Refl */0);
+                  return /* Format_subst_ty */Block.__(9, [
+                            ty1[0],
+                            ty2[1],
+                            trans(ty1[2], ty2[2])
+                          ]);
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  exit = 5;
+                  break;
+              default:
+                throw [
+                      Caml_builtin_exceptions.assert_failure,
+                      /* tuple */[
+                        "camlinternalFormat.ml",
+                        812,
+                        28
+                      ]
+                    ];
+            }
+          }
+          break;
+      case 10 : 
+          if (typeof ty2 === "number") {
+            throw [
+                  Caml_builtin_exceptions.assert_failure,
+                  /* tuple */[
+                    "camlinternalFormat.ml",
+                    780,
+                    21
+                  ]
+                ];
+          } else if (ty2.tag === 10) {
+            return /* Alpha_ty */Block.__(10, [trans(ty1[0], ty2[0])]);
+          } else {
+            throw [
+                  Caml_builtin_exceptions.assert_failure,
+                  /* tuple */[
+                    "camlinternalFormat.ml",
+                    780,
+                    21
+                  ]
+                ];
+          }
+      case 11 : 
+          if (typeof ty2 === "number") {
+            throw [
+                  Caml_builtin_exceptions.assert_failure,
+                  /* tuple */[
+                    "camlinternalFormat.ml",
+                    784,
+                    21
+                  ]
+                ];
+          } else {
+            switch (ty2.tag | 0) {
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  return /* Theta_ty */Block.__(11, [trans(ty1[0], ty2[0])]);
+              default:
+                throw [
+                      Caml_builtin_exceptions.assert_failure,
+                      /* tuple */[
+                        "camlinternalFormat.ml",
+                        784,
+                        21
+                      ]
+                    ];
+            }
+          }
+          break;
+      case 12 : 
+          if (typeof ty2 === "number") {
+            throw [
+                  Caml_builtin_exceptions.assert_failure,
+                  /* tuple */[
+                    "camlinternalFormat.ml",
+                    788,
+                    19
+                  ]
+                ];
+          } else {
+            switch (ty2.tag | 0) {
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  return /* Any_ty */Block.__(12, [trans(ty1[0], ty2[0])]);
+              default:
+                throw [
+                      Caml_builtin_exceptions.assert_failure,
+                      /* tuple */[
+                        "camlinternalFormat.ml",
+                        788,
+                        19
+                      ]
+                    ];
+            }
+          }
+          break;
+      case 13 : 
+          if (typeof ty2 === "number") {
+            throw [
+                  Caml_builtin_exceptions.assert_failure,
+                  /* tuple */[
+                    "camlinternalFormat.ml",
+                    792,
+                    22
+                  ]
+                ];
+          } else {
+            switch (ty2.tag | 0) {
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  return /* Reader_ty */Block.__(13, [trans(ty1[0], ty2[0])]);
+              default:
+                throw [
+                      Caml_builtin_exceptions.assert_failure,
+                      /* tuple */[
+                        "camlinternalFormat.ml",
+                        792,
+                        22
+                      ]
+                    ];
+            }
+          }
+          break;
+      case 14 : 
+          if (typeof ty2 === "number") {
+            throw [
+                  Caml_builtin_exceptions.assert_failure,
+                  /* tuple */[
+                    "camlinternalFormat.ml",
+                    797,
+                    30
+                  ]
+                ];
+          } else {
+            switch (ty2.tag | 0) {
+              case 10 : 
+                  exit = 1;
+                  break;
+              case 11 : 
+                  exit = 2;
+                  break;
+              case 12 : 
+                  exit = 3;
+                  break;
+              case 13 : 
+                  exit = 4;
+                  break;
+              case 14 : 
+                  return /* Ignored_reader_ty */Block.__(14, [trans(ty1[0], ty2[0])]);
+              default:
+                throw [
+                      Caml_builtin_exceptions.assert_failure,
+                      /* tuple */[
+                        "camlinternalFormat.ml",
+                        797,
+                        30
+                      ]
+                    ];
+            }
+          }
+          break;
+      
+    }
+  }
+  switch (exit) {
+    case 1 : 
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                781,
+                21
+              ]
+            ];
+    case 2 : 
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                785,
+                21
+              ]
+            ];
+    case 3 : 
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                789,
+                19
+              ]
+            ];
+    case 4 : 
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                793,
+                22
+              ]
+            ];
+    case 5 : 
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                798,
+                30
+              ]
+            ];
+    case 6 : 
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                803,
+                26
+              ]
+            ];
+    case 7 : 
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                813,
+                28
+              ]
+            ];
+    case 8 : 
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                817,
+                23
+              ]
+            ];
+    
+  }
+}
+
+function fmtty_of_formatting_gen(formatting_gen) {
+  return fmtty_of_fmt(formatting_gen[0][0]);
+}
+
+function fmtty_of_fmt(_fmtty) {
+  while(true) {
+    var fmtty = _fmtty;
+    var exit = 0;
+    if (typeof fmtty === "number") {
+      return /* End_of_fmtty */0;
+    } else {
+      switch (fmtty.tag | 0) {
+        case 2 : 
+        case 3 : 
+            exit = 1;
+            break;
+        case 4 : 
+            var ty_rest = fmtty_of_fmt(fmtty[3]);
+            var prec_ty = fmtty_of_precision_fmtty(fmtty[2], /* Int_ty */Block.__(2, [ty_rest]));
+            return fmtty_of_padding_fmtty(fmtty[1], prec_ty);
+        case 5 : 
+            var ty_rest$1 = fmtty_of_fmt(fmtty[3]);
+            var prec_ty$1 = fmtty_of_precision_fmtty(fmtty[2], /* Int32_ty */Block.__(3, [ty_rest$1]));
+            return fmtty_of_padding_fmtty(fmtty[1], prec_ty$1);
+        case 6 : 
+            var ty_rest$2 = fmtty_of_fmt(fmtty[3]);
+            var prec_ty$2 = fmtty_of_precision_fmtty(fmtty[2], /* Nativeint_ty */Block.__(4, [ty_rest$2]));
+            return fmtty_of_padding_fmtty(fmtty[1], prec_ty$2);
+        case 7 : 
+            var ty_rest$3 = fmtty_of_fmt(fmtty[3]);
+            var prec_ty$3 = fmtty_of_precision_fmtty(fmtty[2], /* Int64_ty */Block.__(5, [ty_rest$3]));
+            return fmtty_of_padding_fmtty(fmtty[1], prec_ty$3);
+        case 8 : 
+            var ty_rest$4 = fmtty_of_fmt(fmtty[3]);
+            var prec_ty$4 = fmtty_of_precision_fmtty(fmtty[2], /* Float_ty */Block.__(6, [ty_rest$4]));
+            return fmtty_of_padding_fmtty(fmtty[1], prec_ty$4);
+        case 9 : 
+            return /* Bool_ty */Block.__(7, [fmtty_of_fmt(fmtty[0])]);
+        case 10 : 
+            _fmtty = fmtty[0];
+            continue ;
+        case 13 : 
+            return /* Format_arg_ty */Block.__(8, [
+                      fmtty[1],
+                      fmtty_of_fmt(fmtty[2])
+                    ]);
+        case 14 : 
+            var ty = fmtty[1];
+            return /* Format_subst_ty */Block.__(9, [
+                      ty,
+                      ty,
+                      fmtty_of_fmt(fmtty[2])
+                    ]);
+        case 15 : 
+            return /* Alpha_ty */Block.__(10, [fmtty_of_fmt(fmtty[0])]);
+        case 16 : 
+            return /* Theta_ty */Block.__(11, [fmtty_of_fmt(fmtty[0])]);
+        case 18 : 
+            return CamlinternalFormatBasics.concat_fmtty(fmtty_of_formatting_gen(fmtty[0]), fmtty_of_fmt(fmtty[1]));
+        case 19 : 
+            return /* Reader_ty */Block.__(13, [fmtty_of_fmt(fmtty[0])]);
+        case 20 : 
+            return /* String_ty */Block.__(1, [fmtty_of_fmt(fmtty[2])]);
+        case 21 : 
+            return /* Int_ty */Block.__(2, [fmtty_of_fmt(fmtty[1])]);
+        case 0 : 
+        case 1 : 
+        case 22 : 
+            return /* Char_ty */Block.__(0, [fmtty_of_fmt(fmtty[0])]);
+        case 23 : 
+            var ign = fmtty[0];
+            var fmt = fmtty[1];
+            if (typeof ign === "number") {
+              if (ign === 3) {
+                return /* Ignored_reader_ty */Block.__(14, [fmtty_of_fmt(fmt)]);
+              } else {
+                return fmtty_of_fmt(fmt);
+              }
+            } else if (ign.tag === 8) {
+              return CamlinternalFormatBasics.concat_fmtty(ign[1], fmtty_of_fmt(fmt));
+            } else {
+              return fmtty_of_fmt(fmt);
+            }
+        case 24 : 
+            return fmtty_of_custom(fmtty[0], fmtty_of_fmt(fmtty[2]));
+        default:
+          _fmtty = fmtty[1];
+          continue ;
+      }
+    }
+    if (exit === 1) {
+      return fmtty_of_padding_fmtty(fmtty[0], /* String_ty */Block.__(1, [fmtty_of_fmt(fmtty[1])]));
+    }
+    
+  };
+}
+
+function fmtty_of_custom(arity, fmtty) {
+  if (arity) {
+    return /* Any_ty */Block.__(12, [fmtty_of_custom(arity[0], fmtty)]);
+  } else {
+    return fmtty;
+  }
+}
+
+function fmtty_of_padding_fmtty(pad, fmtty) {
+  if (typeof pad === "number" || !pad.tag) {
+    return fmtty;
+  } else {
+    return /* Int_ty */Block.__(2, [fmtty]);
+  }
+}
+
+function fmtty_of_precision_fmtty(prec, fmtty) {
+  if (typeof prec === "number" && prec !== 0) {
+    return /* Int_ty */Block.__(2, [fmtty]);
+  } else {
+    return fmtty;
+  }
+}
+
+var Type_mismatch = Caml_exceptions.create("CamlinternalFormat.Type_mismatch");
+
+function type_padding(pad, fmtty) {
+  if (typeof pad === "number") {
+    return /* Padding_fmtty_EBB */[
+            /* No_padding */0,
+            fmtty
+          ];
+  } else if (pad.tag) {
+    if (typeof fmtty === "number") {
+      throw Type_mismatch;
+    } else if (fmtty.tag === 2) {
+      return /* Padding_fmtty_EBB */[
+              /* Arg_padding */Block.__(1, [pad[0]]),
+              fmtty[0]
+            ];
+    } else {
+      throw Type_mismatch;
+    }
+  } else {
+    return /* Padding_fmtty_EBB */[
+            /* Lit_padding */Block.__(0, [
+                pad[0],
+                pad[1]
+              ]),
+            fmtty
+          ];
+  }
+}
+
+function type_padprec(pad, prec, fmtty) {
+  var match = type_padding(pad, fmtty);
+  if (typeof prec === "number") {
+    if (prec !== 0) {
+      var match$1 = match[1];
+      if (typeof match$1 === "number") {
+        throw Type_mismatch;
+      } else if (match$1.tag === 2) {
+        return /* Padprec_fmtty_EBB */[
+                match[0],
+                /* Arg_precision */1,
+                match$1[0]
+              ];
+      } else {
+        throw Type_mismatch;
+      }
+    } else {
+      return /* Padprec_fmtty_EBB */[
+              match[0],
+              /* No_precision */0,
+              match[1]
+            ];
+    }
+  } else {
+    return /* Padprec_fmtty_EBB */[
+            match[0],
+            /* Lit_precision */[prec[0]],
+            match[1]
+          ];
+  }
+}
+
+function type_ignored_param_one(ign, fmt, fmtty) {
+  var match = type_format_gen(fmt, fmtty);
+  return /* Fmt_fmtty_EBB */[
+          /* Ignored_param */Block.__(23, [
+              ign,
+              match[0]
+            ]),
+          match[1]
+        ];
+}
+
+function type_format_gen(fmt, fmtty) {
+  if (typeof fmt === "number") {
+    return /* Fmt_fmtty_EBB */[
+            /* End_of_format */0,
+            fmtty
+          ];
+  } else {
+    switch (fmt.tag | 0) {
+      case 0 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag) {
+            throw Type_mismatch;
+          } else {
+            var match = type_format_gen(fmt[0], fmtty[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Char */Block.__(0, [match[0]]),
+                    match[1]
+                  ];
+          }
+      case 1 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag) {
+            throw Type_mismatch;
+          } else {
+            var match$1 = type_format_gen(fmt[0], fmtty[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Caml_char */Block.__(1, [match$1[0]]),
+                    match$1[1]
+                  ];
+          }
+      case 2 : 
+          var match$2 = type_padding(fmt[0], fmtty);
+          var match$3 = match$2[1];
+          if (typeof match$3 === "number") {
+            throw Type_mismatch;
+          } else if (match$3.tag === 1) {
+            var match$4 = type_format_gen(fmt[1], match$3[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* String */Block.__(2, [
+                        match$2[0],
+                        match$4[0]
+                      ]),
+                    match$4[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 3 : 
+          var match$5 = type_padding(fmt[0], fmtty);
+          var match$6 = match$5[1];
+          if (typeof match$6 === "number") {
+            throw Type_mismatch;
+          } else if (match$6.tag === 1) {
+            var match$7 = type_format_gen(fmt[1], match$6[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Caml_string */Block.__(3, [
+                        match$5[0],
+                        match$7[0]
+                      ]),
+                    match$7[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 4 : 
+          var match$8 = type_padprec(fmt[1], fmt[2], fmtty);
+          var match$9 = match$8[2];
+          if (typeof match$9 === "number") {
+            throw Type_mismatch;
+          } else if (match$9.tag === 2) {
+            var match$10 = type_format_gen(fmt[3], match$9[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Int */Block.__(4, [
+                        fmt[0],
+                        match$8[0],
+                        match$8[1],
+                        match$10[0]
+                      ]),
+                    match$10[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 5 : 
+          var match$11 = type_padprec(fmt[1], fmt[2], fmtty);
+          var match$12 = match$11[2];
+          if (typeof match$12 === "number") {
+            throw Type_mismatch;
+          } else if (match$12.tag === 3) {
+            var match$13 = type_format_gen(fmt[3], match$12[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Int32 */Block.__(5, [
+                        fmt[0],
+                        match$11[0],
+                        match$11[1],
+                        match$13[0]
+                      ]),
+                    match$13[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 6 : 
+          var match$14 = type_padprec(fmt[1], fmt[2], fmtty);
+          var match$15 = match$14[2];
+          if (typeof match$15 === "number") {
+            throw Type_mismatch;
+          } else if (match$15.tag === 4) {
+            var match$16 = type_format_gen(fmt[3], match$15[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Nativeint */Block.__(6, [
+                        fmt[0],
+                        match$14[0],
+                        match$14[1],
+                        match$16[0]
+                      ]),
+                    match$16[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 7 : 
+          var match$17 = type_padprec(fmt[1], fmt[2], fmtty);
+          var match$18 = match$17[2];
+          if (typeof match$18 === "number") {
+            throw Type_mismatch;
+          } else if (match$18.tag === 5) {
+            var match$19 = type_format_gen(fmt[3], match$18[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Int64 */Block.__(7, [
+                        fmt[0],
+                        match$17[0],
+                        match$17[1],
+                        match$19[0]
+                      ]),
+                    match$19[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 8 : 
+          var match$20 = type_padprec(fmt[1], fmt[2], fmtty);
+          var match$21 = match$20[2];
+          if (typeof match$21 === "number") {
+            throw Type_mismatch;
+          } else if (match$21.tag === 6) {
+            var match$22 = type_format_gen(fmt[3], match$21[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Float */Block.__(8, [
+                        fmt[0],
+                        match$20[0],
+                        match$20[1],
+                        match$22[0]
+                      ]),
+                    match$22[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 9 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 7) {
+            var match$23 = type_format_gen(fmt[0], fmtty[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Bool */Block.__(9, [match$23[0]]),
+                    match$23[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 10 : 
+          var match$24 = type_format_gen(fmt[0], fmtty);
+          return /* Fmt_fmtty_EBB */[
+                  /* Flush */Block.__(10, [match$24[0]]),
+                  match$24[1]
+                ];
+      case 11 : 
+          var match$25 = type_format_gen(fmt[1], fmtty);
+          return /* Fmt_fmtty_EBB */[
+                  /* String_literal */Block.__(11, [
+                      fmt[0],
+                      match$25[0]
+                    ]),
+                  match$25[1]
+                ];
+      case 12 : 
+          var match$26 = type_format_gen(fmt[1], fmtty);
+          return /* Fmt_fmtty_EBB */[
+                  /* Char_literal */Block.__(12, [
+                      fmt[0],
+                      match$26[0]
+                    ]),
+                  match$26[1]
+                ];
+      case 13 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 8) {
+            var sub_fmtty$prime = fmtty[0];
+            if (Caml_obj.caml_notequal(/* Fmtty_EBB */[fmt[1]], /* Fmtty_EBB */[sub_fmtty$prime])) {
+              throw Type_mismatch;
+            }
+            var match$27 = type_format_gen(fmt[2], fmtty[1]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Format_arg */Block.__(13, [
+                        fmt[0],
+                        sub_fmtty$prime,
+                        match$27[0]
+                      ]),
+                    match$27[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 14 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 9) {
+            var sub_fmtty1 = fmtty[0];
+            if (Caml_obj.caml_notequal(/* Fmtty_EBB */[CamlinternalFormatBasics.erase_rel(fmt[1])], /* Fmtty_EBB */[CamlinternalFormatBasics.erase_rel(sub_fmtty1)])) {
+              throw Type_mismatch;
+            }
+            var match$28 = type_format_gen(fmt[2], CamlinternalFormatBasics.erase_rel(fmtty[2]));
+            return /* Fmt_fmtty_EBB */[
+                    /* Format_subst */Block.__(14, [
+                        fmt[0],
+                        sub_fmtty1,
+                        match$28[0]
+                      ]),
+                    match$28[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 15 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 10) {
+            var match$29 = type_format_gen(fmt[0], fmtty[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Alpha */Block.__(15, [match$29[0]]),
+                    match$29[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 16 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 11) {
+            var match$30 = type_format_gen(fmt[0], fmtty[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Theta */Block.__(16, [match$30[0]]),
+                    match$30[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 17 : 
+          var match$31 = type_format_gen(fmt[1], fmtty);
+          return /* Fmt_fmtty_EBB */[
+                  /* Formatting_lit */Block.__(17, [
+                      fmt[0],
+                      match$31[0]
+                    ]),
+                  match$31[1]
+                ];
+      case 18 : 
+          var formatting_gen = fmt[0];
+          var fmt0 = fmt[1];
+          var fmtty0 = fmtty;
+          if (formatting_gen.tag) {
+            var match$32 = formatting_gen[0];
+            var match$33 = type_format_gen(match$32[0], fmtty0);
+            var match$34 = type_format_gen(fmt0, match$33[1]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Formatting_gen */Block.__(18, [
+                        /* Open_box */Block.__(1, [/* Format */[
+                              match$33[0],
+                              match$32[1]
+                            ]]),
+                        match$34[0]
+                      ]),
+                    match$34[1]
+                  ];
+          } else {
+            var match$35 = formatting_gen[0];
+            var match$36 = type_format_gen(match$35[0], fmtty0);
+            var match$37 = type_format_gen(fmt0, match$36[1]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Formatting_gen */Block.__(18, [
+                        /* Open_tag */Block.__(0, [/* Format */[
+                              match$36[0],
+                              match$35[1]
+                            ]]),
+                        match$37[0]
+                      ]),
+                    match$37[1]
+                  ];
+          }
+      case 19 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 13) {
+            var match$38 = type_format_gen(fmt[0], fmtty[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Reader */Block.__(19, [match$38[0]]),
+                    match$38[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 20 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 1) {
+            var match$39 = type_format_gen(fmt[2], fmtty[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Scan_char_set */Block.__(20, [
+                        fmt[0],
+                        fmt[1],
+                        match$39[0]
+                      ]),
+                    match$39[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 21 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 2) {
+            var match$40 = type_format_gen(fmt[1], fmtty[0]);
+            return /* Fmt_fmtty_EBB */[
+                    /* Scan_get_counter */Block.__(21, [
+                        fmt[0],
+                        match$40[0]
+                      ]),
+                    match$40[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 23 : 
+          var ign = fmt[0];
+          var fmt$1 = fmt[1];
+          var fmtty$1 = fmtty;
+          if (typeof ign === "number") {
+            if (ign === 3) {
+              if (typeof fmtty$1 === "number") {
+                throw Type_mismatch;
+              } else if (fmtty$1.tag === 14) {
+                var match$41 = type_format_gen(fmt$1, fmtty$1[0]);
+                return /* Fmt_fmtty_EBB */[
+                        /* Ignored_param */Block.__(23, [
+                            /* Ignored_reader */3,
+                            match$41[0]
+                          ]),
+                        match$41[1]
+                      ];
+              } else {
+                throw Type_mismatch;
+              }
+            } else {
+              return type_ignored_param_one(ign, fmt$1, fmtty$1);
+            }
+          } else {
+            switch (ign.tag | 0) {
+              case 7 : 
+                  return type_ignored_param_one(/* Ignored_format_arg */Block.__(7, [
+                                ign[0],
+                                ign[1]
+                              ]), fmt$1, fmtty$1);
+              case 8 : 
+                  var match$42 = type_ignored_format_substitution(ign[1], fmt$1, fmtty$1);
+                  var match$43 = match$42[1];
+                  return /* Fmt_fmtty_EBB */[
+                          /* Ignored_param */Block.__(23, [
+                              /* Ignored_format_subst */Block.__(8, [
+                                  ign[0],
+                                  match$42[0]
+                                ]),
+                              match$43[0]
+                            ]),
+                          match$43[1]
+                        ];
+              default:
+                return type_ignored_param_one(ign, fmt$1, fmtty$1);
+            }
+          }
+      case 22 : 
+      case 24 : 
+          throw Type_mismatch;
+      
+    }
+  }
+}
+
+function type_ignored_format_substitution(sub_fmtty, fmt, fmtty) {
+  if (typeof sub_fmtty === "number") {
+    return /* Fmtty_fmt_EBB */[
+            /* End_of_fmtty */0,
+            type_format_gen(fmt, fmtty)
+          ];
+  } else {
+    switch (sub_fmtty.tag | 0) {
+      case 0 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag) {
+            throw Type_mismatch;
+          } else {
+            var match = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Char_ty */Block.__(0, [match[0]]),
+                    match[1]
+                  ];
+          }
+      case 1 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 1) {
+            var match$1 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* String_ty */Block.__(1, [match$1[0]]),
+                    match$1[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 2 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 2) {
+            var match$2 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Int_ty */Block.__(2, [match$2[0]]),
+                    match$2[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 3 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 3) {
+            var match$3 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Int32_ty */Block.__(3, [match$3[0]]),
+                    match$3[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 4 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 4) {
+            var match$4 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Nativeint_ty */Block.__(4, [match$4[0]]),
+                    match$4[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 5 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 5) {
+            var match$5 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Int64_ty */Block.__(5, [match$5[0]]),
+                    match$5[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 6 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 6) {
+            var match$6 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Float_ty */Block.__(6, [match$6[0]]),
+                    match$6[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 7 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 7) {
+            var match$7 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Bool_ty */Block.__(7, [match$7[0]]),
+                    match$7[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 8 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 8) {
+            var sub2_fmtty$prime = fmtty[0];
+            if (Caml_obj.caml_notequal(/* Fmtty_EBB */[sub_fmtty[0]], /* Fmtty_EBB */[sub2_fmtty$prime])) {
+              throw Type_mismatch;
+            }
+            var match$8 = type_ignored_format_substitution(sub_fmtty[1], fmt, fmtty[1]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Format_arg_ty */Block.__(8, [
+                        sub2_fmtty$prime,
+                        match$8[0]
+                      ]),
+                    match$8[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 9 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 9) {
+            var sub2_fmtty$prime$1 = fmtty[1];
+            var sub1_fmtty$prime = fmtty[0];
+            if (Caml_obj.caml_notequal(/* Fmtty_EBB */[CamlinternalFormatBasics.erase_rel(sub_fmtty[0])], /* Fmtty_EBB */[CamlinternalFormatBasics.erase_rel(sub1_fmtty$prime)])) {
+              throw Type_mismatch;
+            }
+            if (Caml_obj.caml_notequal(/* Fmtty_EBB */[CamlinternalFormatBasics.erase_rel(sub_fmtty[1])], /* Fmtty_EBB */[CamlinternalFormatBasics.erase_rel(sub2_fmtty$prime$1)])) {
+              throw Type_mismatch;
+            }
+            var sub_fmtty$prime = trans(symm(sub1_fmtty$prime), sub2_fmtty$prime$1);
+            var match$9 = fmtty_rel_det(sub_fmtty$prime);
+            Curry._1(match$9[1], /* Refl */0);
+            Curry._1(match$9[3], /* Refl */0);
+            var match$10 = type_ignored_format_substitution(CamlinternalFormatBasics.erase_rel(sub_fmtty[2]), fmt, fmtty[2]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Format_subst_ty */Block.__(9, [
+                        sub1_fmtty$prime,
+                        sub2_fmtty$prime$1,
+                        symm(match$10[0])
+                      ]),
+                    match$10[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 10 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 10) {
+            var match$11 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Alpha_ty */Block.__(10, [match$11[0]]),
+                    match$11[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 11 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 11) {
+            var match$12 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Theta_ty */Block.__(11, [match$12[0]]),
+                    match$12[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 12 : 
+          throw Type_mismatch;
+      case 13 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 13) {
+            var match$13 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Reader_ty */Block.__(13, [match$13[0]]),
+                    match$13[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      case 14 : 
+          if (typeof fmtty === "number") {
+            throw Type_mismatch;
+          } else if (fmtty.tag === 14) {
+            var match$14 = type_ignored_format_substitution(sub_fmtty[0], fmt, fmtty[0]);
+            return /* Fmtty_fmt_EBB */[
+                    /* Ignored_reader_ty */Block.__(14, [match$14[0]]),
+                    match$14[1]
+                  ];
+          } else {
+            throw Type_mismatch;
+          }
+      
+    }
+  }
+}
+
+function type_format(fmt, fmtty) {
+  var match = type_format_gen(fmt, fmtty);
+  if (typeof match[1] === "number") {
+    return match[0];
+  } else {
+    throw Type_mismatch;
+  }
+}
+
+function recast(fmt, fmtty) {
+  return type_format(fmt, CamlinternalFormatBasics.erase_rel(symm(fmtty)));
+}
+
+function fix_padding(padty, width, str) {
+  var len = str.length;
+  var width$1 = Pervasives.abs(width);
+  var padty$1 = width < 0 ? /* Left */0 : padty;
+  if (width$1 <= len) {
+    return str;
+  } else {
+    var res = Bytes.make(width$1, padty$1 === /* Zeros */2 ? /* "0" */48 : /* " " */32);
+    switch (padty$1) {
+      case 0 : 
+          $$String.blit(str, 0, res, 0, len);
+          break;
+      case 1 : 
+          $$String.blit(str, 0, res, width$1 - len | 0, len);
+          break;
+      case 2 : 
+          if (len > 0 && (Caml_string.get(str, 0) === /* "+" */43 || Caml_string.get(str, 0) === /* "-" */45 || Caml_string.get(str, 0) === /* " " */32)) {
+            res[0] = Caml_string.get(str, 0);
+            $$String.blit(str, 1, res, (width$1 - len | 0) + 1 | 0, len - 1 | 0);
+          } else if (len > 1 && Caml_string.get(str, 0) === /* "0" */48 && (Caml_string.get(str, 1) === /* "x" */120 || Caml_string.get(str, 1) === /* "X" */88)) {
+            res[1] = Caml_string.get(str, 1);
+            $$String.blit(str, 2, res, (width$1 - len | 0) + 2 | 0, len - 2 | 0);
+          } else {
+            $$String.blit(str, 0, res, width$1 - len | 0, len);
+          }
+          break;
+      
+    }
+    return Caml_string.bytes_to_string(res);
+  }
+}
+
+function fix_int_precision(prec, str) {
+  var prec$1 = Pervasives.abs(prec);
+  var len = str.length;
+  var c = Caml_string.get(str, 0);
+  var exit = 0;
+  if (c >= 58) {
+    if (c >= 71) {
+      if (c > 102 || c < 97) {
+        return str;
+      } else {
+        exit = 2;
+      }
+    } else if (c >= 65) {
+      exit = 2;
+    } else {
+      return str;
+    }
+  } else if (c !== 32) {
+    if (c >= 43) {
+      switch (c - 43 | 0) {
+        case 0 : 
+        case 2 : 
+            exit = 1;
+            break;
+        case 1 : 
+        case 3 : 
+        case 4 : 
+            return str;
+        case 5 : 
+            if ((prec$1 + 2 | 0) > len && len > 1 && (Caml_string.get(str, 1) === /* "x" */120 || Caml_string.get(str, 1) === /* "X" */88)) {
+              var res = Bytes.make(prec$1 + 2 | 0, /* "0" */48);
+              res[1] = Caml_string.get(str, 1);
+              $$String.blit(str, 2, res, (prec$1 - len | 0) + 4 | 0, len - 2 | 0);
+              return Caml_string.bytes_to_string(res);
+            } else {
+              exit = 2;
+            }
+            break;
+        case 6 : 
+        case 7 : 
+        case 8 : 
+        case 9 : 
+        case 10 : 
+        case 11 : 
+        case 12 : 
+        case 13 : 
+        case 14 : 
+            exit = 2;
+            break;
+        
+      }
+    } else {
+      return str;
+    }
+  } else {
+    exit = 1;
+  }
+  switch (exit) {
+    case 1 : 
+        if ((prec$1 + 1 | 0) > len) {
+          var res$1 = Bytes.make(prec$1 + 1 | 0, /* "0" */48);
+          res$1[0] = c;
+          $$String.blit(str, 1, res$1, (prec$1 - len | 0) + 2 | 0, len - 1 | 0);
+          return Caml_string.bytes_to_string(res$1);
+        } else {
+          return str;
+        }
+    case 2 : 
+        if (prec$1 > len) {
+          var res$2 = Bytes.make(prec$1, /* "0" */48);
+          $$String.blit(str, 0, res$2, prec$1 - len | 0, len);
+          return Caml_string.bytes_to_string(res$2);
+        } else {
+          return str;
+        }
+    
+  }
+}
+
+function string_to_caml_string(str) {
+  return $$String.concat($$String.escaped(str), /* :: */[
+              "\"",
+              /* :: */[
+                "\"",
+                /* [] */0
+              ]
+            ]);
+}
+
+function format_of_iconv(iconv) {
+  switch (iconv) {
+    case 0 : 
+        return "%d";
+    case 1 : 
+        return "%+d";
+    case 2 : 
+        return "% d";
+    case 3 : 
+        return "%i";
+    case 4 : 
+        return "%+i";
+    case 5 : 
+        return "% i";
+    case 6 : 
+        return "%x";
+    case 7 : 
+        return "%#x";
+    case 8 : 
+        return "%X";
+    case 9 : 
+        return "%#X";
+    case 10 : 
+        return "%o";
+    case 11 : 
+        return "%#o";
+    case 12 : 
+        return "%u";
+    
+  }
+}
+
+function format_of_aconv(iconv, c) {
+  var seps;
+  switch (iconv) {
+    case 0 : 
+        seps = /* :: */[
+          "%",
+          /* :: */[
+            "d",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 1 : 
+        seps = /* :: */[
+          "%+",
+          /* :: */[
+            "d",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 2 : 
+        seps = /* :: */[
+          "% ",
+          /* :: */[
+            "d",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 3 : 
+        seps = /* :: */[
+          "%",
+          /* :: */[
+            "i",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 4 : 
+        seps = /* :: */[
+          "%+",
+          /* :: */[
+            "i",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 5 : 
+        seps = /* :: */[
+          "% ",
+          /* :: */[
+            "i",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 6 : 
+        seps = /* :: */[
+          "%",
+          /* :: */[
+            "x",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 7 : 
+        seps = /* :: */[
+          "%#",
+          /* :: */[
+            "x",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 8 : 
+        seps = /* :: */[
+          "%",
+          /* :: */[
+            "X",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 9 : 
+        seps = /* :: */[
+          "%#",
+          /* :: */[
+            "X",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 10 : 
+        seps = /* :: */[
+          "%",
+          /* :: */[
+            "o",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 11 : 
+        seps = /* :: */[
+          "%#",
+          /* :: */[
+            "o",
+            /* [] */0
+          ]
+        ];
+        break;
+    case 12 : 
+        seps = /* :: */[
+          "%",
+          /* :: */[
+            "u",
+            /* [] */0
+          ]
+        ];
+        break;
+    
+  }
+  return $$String.concat(Caml_string.bytes_to_string(Bytes.make(1, c)), seps);
+}
+
+function format_of_fconv(fconv, prec) {
+  if (fconv === /* Float_F */15) {
+    return "%.12g";
+  } else {
+    var prec$1 = Pervasives.abs(prec);
+    var symb = char_of_fconv(fconv);
+    var buf = /* record */[
+      /* ind */0,
+      /* bytes */Caml_string.caml_create_string(16)
+    ];
+    buffer_add_char(buf, /* "%" */37);
+    bprint_fconv_flag(buf, fconv);
+    buffer_add_char(buf, /* "." */46);
+    buffer_add_string(buf, String(prec$1));
+    buffer_add_char(buf, symb);
+    return buffer_contents(buf);
+  }
+}
+
+function convert_int(iconv, n) {
+  return Caml_format.caml_format_int(format_of_iconv(iconv), n);
+}
+
+function convert_int32(iconv, n) {
+  return Caml_format.caml_int32_format(format_of_aconv(iconv, /* "l" */108), n);
+}
+
+function convert_nativeint(iconv, n) {
+  return Caml_format.caml_nativeint_format(format_of_aconv(iconv, /* "n" */110), n);
+}
+
+function convert_int64(iconv, n) {
+  return Caml_format.caml_int64_format(format_of_aconv(iconv, /* "L" */76), n);
+}
+
+function convert_float(fconv, prec, x) {
+  var prec$1 = Pervasives.abs(prec);
+  var str = Caml_format.caml_format_float(format_of_fconv(fconv, prec$1), x);
+  if (fconv !== /* Float_F */15) {
+    return str;
+  } else {
+    var len = str.length;
+    var is_valid = function (_i) {
+      while(true) {
+        var i = _i;
+        if (i === len) {
+          return false;
+        } else {
+          var match = Caml_string.get(str, i);
+          var switcher = match - 46 | 0;
+          if (switcher > 23 || switcher < 0) {
+            if (switcher !== 55) {
+              _i = i + 1 | 0;
+              continue ;
+            } else {
+              return true;
+            }
+          } else if (switcher > 22 || switcher < 1) {
+            return true;
+          } else {
+            _i = i + 1 | 0;
+            continue ;
+          }
+        }
+      };
+    };
+    var match = Caml_float.caml_classify_float(x);
+    if (match !== 3) {
+      if (match >= 4) {
+        return "nan";
+      } else if (is_valid(0)) {
+        return str;
+      } else {
+        return str + ".";
+      }
+    } else if (x < 0.0) {
+      return "neg_infinity";
+    } else {
+      return "infinity";
+    }
+  }
+}
+
+function format_caml_char(c) {
+  return $$String.concat(Char.escaped(c), /* :: */[
+              "'",
+              /* :: */[
+                "'",
+                /* [] */0
+              ]
+            ]);
+}
+
+function string_of_fmtty(fmtty) {
+  var buf = /* record */[
+    /* ind */0,
+    /* bytes */Caml_string.caml_create_string(16)
+  ];
+  bprint_fmtty(buf, fmtty);
+  return buffer_contents(buf);
+}
+
+function make_printf(_k, o, _acc, _fmt) {
+  while(true) {
+    var fmt = _fmt;
+    var acc = _acc;
+    var k = _k;
+    if (typeof fmt === "number") {
+      return Curry._2(k, o, acc);
+    } else {
+      switch (fmt.tag | 0) {
+        case 0 : 
+            var rest = fmt[0];
+            return (function(k,acc,rest){
+            return function (c) {
+              var new_acc = /* Acc_data_char */Block.__(5, [
+                  acc,
+                  c
+                ]);
+              return make_printf(k, o, new_acc, rest);
+            }
+            }(k,acc,rest));
+        case 1 : 
+            var rest$1 = fmt[0];
+            return (function(k,acc,rest$1){
+            return function (c) {
+              var new_acc_001 = format_caml_char(c);
+              var new_acc = /* Acc_data_string */Block.__(4, [
+                  acc,
+                  new_acc_001
+                ]);
+              return make_printf(k, o, new_acc, rest$1);
+            }
+            }(k,acc,rest$1));
+        case 2 : 
+            return make_string_padding(k, o, acc, fmt[1], fmt[0], (function (str) {
+                          return str;
+                        }));
+        case 3 : 
+            return make_string_padding(k, o, acc, fmt[1], fmt[0], string_to_caml_string);
+        case 4 : 
+            return make_int_padding_precision(k, o, acc, fmt[3], fmt[1], fmt[2], convert_int, fmt[0]);
+        case 5 : 
+            return make_int_padding_precision(k, o, acc, fmt[3], fmt[1], fmt[2], convert_int32, fmt[0]);
+        case 6 : 
+            return make_int_padding_precision(k, o, acc, fmt[3], fmt[1], fmt[2], convert_nativeint, fmt[0]);
+        case 7 : 
+            return make_int_padding_precision(k, o, acc, fmt[3], fmt[1], fmt[2], convert_int64, fmt[0]);
+        case 8 : 
+            var k$1 = k;
+            var o$1 = o;
+            var acc$1 = acc;
+            var fmt$1 = fmt[3];
+            var pad = fmt[1];
+            var prec = fmt[2];
+            var fconv = fmt[0];
+            if (typeof pad === "number") {
+              if (typeof prec === "number") {
+                if (prec !== 0) {
+                  return (function(k$1,o$1,acc$1,fmt$1,fconv){
+                  return function (p, x) {
+                    var str = convert_float(fconv, p, x);
+                    return make_printf(k$1, o$1, /* Acc_data_string */Block.__(4, [
+                                  acc$1,
+                                  str
+                                ]), fmt$1);
+                  }
+                  }(k$1,o$1,acc$1,fmt$1,fconv));
+                } else {
+                  return (function(k$1,o$1,acc$1,fmt$1,fconv){
+                  return function (x) {
+                    var str = convert_float(fconv, 6, x);
+                    return make_printf(k$1, o$1, /* Acc_data_string */Block.__(4, [
+                                  acc$1,
+                                  str
+                                ]), fmt$1);
+                  }
+                  }(k$1,o$1,acc$1,fmt$1,fconv));
+                }
+              } else {
+                var p = prec[0];
+                return (function(k$1,o$1,acc$1,fmt$1,fconv,p){
+                return function (x) {
+                  var str = convert_float(fconv, p, x);
+                  return make_printf(k$1, o$1, /* Acc_data_string */Block.__(4, [
+                                acc$1,
+                                str
+                              ]), fmt$1);
+                }
+                }(k$1,o$1,acc$1,fmt$1,fconv,p));
+              }
+            } else if (pad.tag) {
+              var padty = pad[0];
+              if (typeof prec === "number") {
+                if (prec !== 0) {
+                  return (function(k$1,o$1,acc$1,fmt$1,fconv,padty){
+                  return function (w, p, x) {
+                    var str = fix_padding(padty, w, convert_float(fconv, p, x));
+                    return make_printf(k$1, o$1, /* Acc_data_string */Block.__(4, [
+                                  acc$1,
+                                  str
+                                ]), fmt$1);
+                  }
+                  }(k$1,o$1,acc$1,fmt$1,fconv,padty));
+                } else {
+                  return (function(k$1,o$1,acc$1,fmt$1,fconv,padty){
+                  return function (w, x) {
+                    var str = convert_float(fconv, 6, x);
+                    var str$prime = fix_padding(padty, w, str);
+                    return make_printf(k$1, o$1, /* Acc_data_string */Block.__(4, [
+                                  acc$1,
+                                  str$prime
+                                ]), fmt$1);
+                  }
+                  }(k$1,o$1,acc$1,fmt$1,fconv,padty));
+                }
+              } else {
+                var p$1 = prec[0];
+                return (function(k$1,o$1,acc$1,fmt$1,fconv,padty,p$1){
+                return function (w, x) {
+                  var str = fix_padding(padty, w, convert_float(fconv, p$1, x));
+                  return make_printf(k$1, o$1, /* Acc_data_string */Block.__(4, [
+                                acc$1,
+                                str
+                              ]), fmt$1);
+                }
+                }(k$1,o$1,acc$1,fmt$1,fconv,padty,p$1));
+              }
+            } else {
+              var w = pad[1];
+              var padty$1 = pad[0];
+              if (typeof prec === "number") {
+                if (prec !== 0) {
+                  return (function(k$1,o$1,acc$1,fmt$1,fconv,padty$1,w){
+                  return function (p, x) {
+                    var str = fix_padding(padty$1, w, convert_float(fconv, p, x));
+                    return make_printf(k$1, o$1, /* Acc_data_string */Block.__(4, [
+                                  acc$1,
+                                  str
+                                ]), fmt$1);
+                  }
+                  }(k$1,o$1,acc$1,fmt$1,fconv,padty$1,w));
+                } else {
+                  return (function(k$1,o$1,acc$1,fmt$1,fconv,padty$1,w){
+                  return function (x) {
+                    var str = convert_float(fconv, 6, x);
+                    var str$prime = fix_padding(padty$1, w, str);
+                    return make_printf(k$1, o$1, /* Acc_data_string */Block.__(4, [
+                                  acc$1,
+                                  str$prime
+                                ]), fmt$1);
+                  }
+                  }(k$1,o$1,acc$1,fmt$1,fconv,padty$1,w));
+                }
+              } else {
+                var p$2 = prec[0];
+                return (function(k$1,o$1,acc$1,fmt$1,fconv,padty$1,w,p$2){
+                return function (x) {
+                  var str = fix_padding(padty$1, w, convert_float(fconv, p$2, x));
+                  return make_printf(k$1, o$1, /* Acc_data_string */Block.__(4, [
+                                acc$1,
+                                str
+                              ]), fmt$1);
+                }
+                }(k$1,o$1,acc$1,fmt$1,fconv,padty$1,w,p$2));
+              }
+            }
+        case 9 : 
+            var rest$2 = fmt[0];
+            return (function(k,acc,rest$2){
+            return function (b) {
+              return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                            acc,
+                            b ? "true" : "false"
+                          ]), rest$2);
+            }
+            }(k,acc,rest$2));
+        case 10 : 
+            _fmt = fmt[0];
+            _acc = /* Acc_flush */Block.__(7, [acc]);
+            continue ;
+        case 11 : 
+            _fmt = fmt[1];
+            _acc = /* Acc_string_literal */Block.__(2, [
+                acc,
+                fmt[0]
+              ]);
+            continue ;
+        case 12 : 
+            _fmt = fmt[1];
+            _acc = /* Acc_char_literal */Block.__(3, [
+                acc,
+                fmt[0]
+              ]);
+            continue ;
+        case 13 : 
+            var rest$3 = fmt[2];
+            var ty = string_of_fmtty(fmt[1]);
+            return (function(k,acc,rest$3,ty){
+            return function () {
+              return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                            acc,
+                            ty
+                          ]), rest$3);
+            }
+            }(k,acc,rest$3,ty));
+        case 14 : 
+            var rest$4 = fmt[2];
+            var fmtty = fmt[1];
+            return (function(k,acc,fmtty,rest$4){
+            return function (param) {
+              return make_printf(k, o, acc, CamlinternalFormatBasics.concat_fmt(recast(param[0], fmtty), rest$4));
+            }
+            }(k,acc,fmtty,rest$4));
+        case 15 : 
+            var rest$5 = fmt[0];
+            return (function(k,acc,rest$5){
+            return function (f, x) {
+              return make_printf(k, o, /* Acc_delay */Block.__(6, [
+                            acc,
+                            (function (o) {
+                                return Curry._2(f, o, x);
+                              })
+                          ]), rest$5);
+            }
+            }(k,acc,rest$5));
+        case 16 : 
+            var rest$6 = fmt[0];
+            return (function(k,acc,rest$6){
+            return function (f) {
+              return make_printf(k, o, /* Acc_delay */Block.__(6, [
+                            acc,
+                            f
+                          ]), rest$6);
+            }
+            }(k,acc,rest$6));
+        case 17 : 
+            _fmt = fmt[1];
+            _acc = /* Acc_formatting_lit */Block.__(0, [
+                acc,
+                fmt[0]
+              ]);
+            continue ;
+        case 18 : 
+            var match = fmt[0];
+            if (match.tag) {
+              var rest$7 = fmt[1];
+              var k$prime = (function(k,acc,rest$7){
+              return function k$prime(koc, kacc) {
+                return make_printf(k, koc, /* Acc_formatting_gen */Block.__(1, [
+                              acc,
+                              /* Acc_open_box */Block.__(1, [kacc])
+                            ]), rest$7);
+              }
+              }(k,acc,rest$7));
+              _fmt = match[0][0];
+              _acc = /* End_of_acc */0;
+              _k = k$prime;
+              continue ;
+            } else {
+              var rest$8 = fmt[1];
+              var k$prime$1 = (function(k,acc,rest$8){
+              return function k$prime$1(koc, kacc) {
+                return make_printf(k, koc, /* Acc_formatting_gen */Block.__(1, [
+                              acc,
+                              /* Acc_open_tag */Block.__(0, [kacc])
+                            ]), rest$8);
+              }
+              }(k,acc,rest$8));
+              _fmt = match[0][0];
+              _acc = /* End_of_acc */0;
+              _k = k$prime$1;
+              continue ;
+            }
+        case 19 : 
+            throw [
+                  Caml_builtin_exceptions.assert_failure,
+                  /* tuple */[
+                    "camlinternalFormat.ml",
+                    1449,
+                    4
+                  ]
+                ];
+        case 20 : 
+            var rest$9 = fmt[2];
+            var new_acc = /* Acc_invalid_arg */Block.__(8, [
+                acc,
+                "Printf: bad conversion %["
+              ]);
+            return (function(k,rest$9,new_acc){
+            return function () {
+              return make_printf(k, o, new_acc, rest$9);
+            }
+            }(k,rest$9,new_acc));
+        case 21 : 
+            var rest$10 = fmt[1];
+            return (function(k,acc,rest$10){
+            return function (n) {
+              var new_acc_001 = Caml_format.caml_format_int("%u", n);
+              var new_acc = /* Acc_data_string */Block.__(4, [
+                  acc,
+                  new_acc_001
+                ]);
+              return make_printf(k, o, new_acc, rest$10);
+            }
+            }(k,acc,rest$10));
+        case 22 : 
+            var rest$11 = fmt[0];
+            return (function(k,acc,rest$11){
+            return function (c) {
+              var new_acc = /* Acc_data_char */Block.__(5, [
+                  acc,
+                  c
+                ]);
+              return make_printf(k, o, new_acc, rest$11);
+            }
+            }(k,acc,rest$11));
+        case 23 : 
+            var k$2 = k;
+            var o$2 = o;
+            var acc$2 = acc;
+            var ign = fmt[0];
+            var fmt$2 = fmt[1];
+            if (typeof ign === "number") {
+              if (ign === 3) {
+                throw [
+                      Caml_builtin_exceptions.assert_failure,
+                      /* tuple */[
+                        "camlinternalFormat.ml",
+                        1517,
+                        39
+                      ]
+                    ];
+              } else {
+                return make_invalid_arg(k$2, o$2, acc$2, fmt$2);
+              }
+            } else if (ign.tag === 8) {
+              return make_from_fmtty(k$2, o$2, acc$2, ign[1], fmt$2);
+            } else {
+              return make_invalid_arg(k$2, o$2, acc$2, fmt$2);
+            }
+        case 24 : 
+            return make_custom(k, o, acc, fmt[2], fmt[0], Curry._1(fmt[1], /* () */0));
+        
+      }
+    }
+  };
+}
+
+function make_from_fmtty(k, o, acc, fmtty, fmt) {
+  if (typeof fmtty === "number") {
+    return make_invalid_arg(k, o, acc, fmt);
+  } else {
+    switch (fmtty.tag | 0) {
+      case 0 : 
+          var rest = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest, fmt);
+            });
+      case 1 : 
+          var rest$1 = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$1, fmt);
+            });
+      case 2 : 
+          var rest$2 = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$2, fmt);
+            });
+      case 3 : 
+          var rest$3 = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$3, fmt);
+            });
+      case 4 : 
+          var rest$4 = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$4, fmt);
+            });
+      case 5 : 
+          var rest$5 = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$5, fmt);
+            });
+      case 6 : 
+          var rest$6 = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$6, fmt);
+            });
+      case 7 : 
+          var rest$7 = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$7, fmt);
+            });
+      case 8 : 
+          var rest$8 = fmtty[1];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$8, fmt);
+            });
+      case 9 : 
+          var rest$9 = fmtty[2];
+          var ty = trans(symm(fmtty[0]), fmtty[1]);
+          return (function () {
+              return make_from_fmtty(k, o, acc, CamlinternalFormatBasics.concat_fmtty(ty, rest$9), fmt);
+            });
+      case 10 : 
+          var rest$10 = fmtty[0];
+          return (function (_, _$1) {
+              return make_from_fmtty(k, o, acc, rest$10, fmt);
+            });
+      case 11 : 
+          var rest$11 = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$11, fmt);
+            });
+      case 12 : 
+          var rest$12 = fmtty[0];
+          return (function () {
+              return make_from_fmtty(k, o, acc, rest$12, fmt);
+            });
+      case 13 : 
+          throw [
+                Caml_builtin_exceptions.assert_failure,
+                /* tuple */[
+                  "camlinternalFormat.ml",
+                  1540,
+                  31
+                ]
+              ];
+      case 14 : 
+          throw [
+                Caml_builtin_exceptions.assert_failure,
+                /* tuple */[
+                  "camlinternalFormat.ml",
+                  1541,
+                  31
+                ]
+              ];
+      
+    }
+  }
+}
+
+function make_invalid_arg(k, o, acc, fmt) {
+  return make_printf(k, o, /* Acc_invalid_arg */Block.__(8, [
+                acc,
+                "Printf: bad conversion %_"
+              ]), fmt);
+}
+
+function make_string_padding(k, o, acc, fmt, pad, trans) {
+  if (typeof pad === "number") {
+    return (function (x) {
+        var new_acc_001 = Curry._1(trans, x);
+        var new_acc = /* Acc_data_string */Block.__(4, [
+            acc,
+            new_acc_001
+          ]);
+        return make_printf(k, o, new_acc, fmt);
+      });
+  } else if (pad.tag) {
+    var padty = pad[0];
+    return (function (w, x) {
+        var new_acc_001 = fix_padding(padty, w, Curry._1(trans, x));
+        var new_acc = /* Acc_data_string */Block.__(4, [
+            acc,
+            new_acc_001
+          ]);
+        return make_printf(k, o, new_acc, fmt);
+      });
+  } else {
+    var width = pad[1];
+    var padty$1 = pad[0];
+    return (function (x) {
+        var new_acc_001 = fix_padding(padty$1, width, Curry._1(trans, x));
+        var new_acc = /* Acc_data_string */Block.__(4, [
+            acc,
+            new_acc_001
+          ]);
+        return make_printf(k, o, new_acc, fmt);
+      });
+  }
+}
+
+function make_int_padding_precision(k, o, acc, fmt, pad, prec, trans, iconv) {
+  if (typeof pad === "number") {
+    if (typeof prec === "number") {
+      if (prec !== 0) {
+        return (function (p, x) {
+            var str = fix_int_precision(p, Curry._2(trans, iconv, x));
+            return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                          acc,
+                          str
+                        ]), fmt);
+          });
+      } else {
+        return (function (x) {
+            var str = Curry._2(trans, iconv, x);
+            return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                          acc,
+                          str
+                        ]), fmt);
+          });
+      }
+    } else {
+      var p = prec[0];
+      return (function (x) {
+          var str = fix_int_precision(p, Curry._2(trans, iconv, x));
+          return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                        acc,
+                        str
+                      ]), fmt);
+        });
+    }
+  } else if (pad.tag) {
+    var padty = pad[0];
+    if (typeof prec === "number") {
+      if (prec !== 0) {
+        return (function (w, p, x) {
+            var str = fix_padding(padty, w, fix_int_precision(p, Curry._2(trans, iconv, x)));
+            return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                          acc,
+                          str
+                        ]), fmt);
+          });
+      } else {
+        return (function (w, x) {
+            var str = fix_padding(padty, w, Curry._2(trans, iconv, x));
+            return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                          acc,
+                          str
+                        ]), fmt);
+          });
+      }
+    } else {
+      var p$1 = prec[0];
+      return (function (w, x) {
+          var str = fix_padding(padty, w, fix_int_precision(p$1, Curry._2(trans, iconv, x)));
+          return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                        acc,
+                        str
+                      ]), fmt);
+        });
+    }
+  } else {
+    var w = pad[1];
+    var padty$1 = pad[0];
+    if (typeof prec === "number") {
+      if (prec !== 0) {
+        return (function (p, x) {
+            var str = fix_padding(padty$1, w, fix_int_precision(p, Curry._2(trans, iconv, x)));
+            return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                          acc,
+                          str
+                        ]), fmt);
+          });
+      } else {
+        return (function (x) {
+            var str = fix_padding(padty$1, w, Curry._2(trans, iconv, x));
+            return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                          acc,
+                          str
+                        ]), fmt);
+          });
+      }
+    } else {
+      var p$2 = prec[0];
+      return (function (x) {
+          var str = fix_padding(padty$1, w, fix_int_precision(p$2, Curry._2(trans, iconv, x)));
+          return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                        acc,
+                        str
+                      ]), fmt);
+        });
+    }
+  }
+}
+
+function make_custom(k, o, acc, rest, arity, f) {
+  if (arity) {
+    var arity$1 = arity[0];
+    return (function (x) {
+        return make_custom(k, o, acc, rest, arity$1, Curry._1(f, x));
+      });
+  } else {
+    return make_printf(k, o, /* Acc_data_string */Block.__(4, [
+                  acc,
+                  f
+                ]), rest);
+  }
+}
+
+function output_acc(o, _acc) {
+  while(true) {
+    var acc = _acc;
+    var exit = 0;
+    if (typeof acc === "number") {
+      return /* () */0;
+    } else {
+      switch (acc.tag | 0) {
+        case 0 : 
+            var s = string_of_formatting_lit(acc[1]);
+            output_acc(o, acc[0]);
+            return Pervasives.output_string(o, s);
+        case 1 : 
+            var match = acc[1];
+            var p = acc[0];
+            output_acc(o, p);
+            if (match.tag) {
+              Pervasives.output_string(o, "@[");
+              _acc = match[0];
+              continue ;
+            } else {
+              Pervasives.output_string(o, "@{");
+              _acc = match[0];
+              continue ;
+            }
+        case 2 : 
+        case 4 : 
+            exit = 1;
+            break;
+        case 3 : 
+        case 5 : 
+            exit = 2;
+            break;
+        case 6 : 
+            output_acc(o, acc[0]);
+            return Curry._1(acc[1], o);
+        case 7 : 
+            output_acc(o, acc[0]);
+            return Caml_io.caml_ml_flush(o);
+        case 8 : 
+            output_acc(o, acc[0]);
+            throw [
+                  Caml_builtin_exceptions.invalid_argument,
+                  acc[1]
+                ];
+        
+      }
+    }
+    switch (exit) {
+      case 1 : 
+          output_acc(o, acc[0]);
+          return Pervasives.output_string(o, acc[1]);
+      case 2 : 
+          output_acc(o, acc[0]);
+          return Caml_io.caml_ml_output_char(o, acc[1]);
+      
+    }
+  };
+}
+
+function bufput_acc(b, _acc) {
+  while(true) {
+    var acc = _acc;
+    var exit = 0;
+    if (typeof acc === "number") {
+      return /* () */0;
+    } else {
+      switch (acc.tag | 0) {
+        case 0 : 
+            var s = string_of_formatting_lit(acc[1]);
+            bufput_acc(b, acc[0]);
+            return $$Buffer.add_string(b, s);
+        case 1 : 
+            var match = acc[1];
+            var p = acc[0];
+            bufput_acc(b, p);
+            if (match.tag) {
+              $$Buffer.add_string(b, "@[");
+              _acc = match[0];
+              continue ;
+            } else {
+              $$Buffer.add_string(b, "@{");
+              _acc = match[0];
+              continue ;
+            }
+        case 2 : 
+        case 4 : 
+            exit = 1;
+            break;
+        case 3 : 
+        case 5 : 
+            exit = 2;
+            break;
+        case 6 : 
+            bufput_acc(b, acc[0]);
+            return Curry._1(acc[1], b);
+        case 7 : 
+            _acc = acc[0];
+            continue ;
+        case 8 : 
+            bufput_acc(b, acc[0]);
+            throw [
+                  Caml_builtin_exceptions.invalid_argument,
+                  acc[1]
+                ];
+        
+      }
+    }
+    switch (exit) {
+      case 1 : 
+          bufput_acc(b, acc[0]);
+          return $$Buffer.add_string(b, acc[1]);
+      case 2 : 
+          bufput_acc(b, acc[0]);
+          return $$Buffer.add_char(b, acc[1]);
+      
+    }
+  };
+}
+
+function strput_acc(b, _acc) {
+  while(true) {
+    var acc = _acc;
+    var exit = 0;
+    if (typeof acc === "number") {
+      return /* () */0;
+    } else {
+      switch (acc.tag | 0) {
+        case 0 : 
+            var s = string_of_formatting_lit(acc[1]);
+            strput_acc(b, acc[0]);
+            return $$Buffer.add_string(b, s);
+        case 1 : 
+            var match = acc[1];
+            var p = acc[0];
+            strput_acc(b, p);
+            if (match.tag) {
+              $$Buffer.add_string(b, "@[");
+              _acc = match[0];
+              continue ;
+            } else {
+              $$Buffer.add_string(b, "@{");
+              _acc = match[0];
+              continue ;
+            }
+        case 2 : 
+        case 4 : 
+            exit = 1;
+            break;
+        case 3 : 
+        case 5 : 
+            exit = 2;
+            break;
+        case 6 : 
+            strput_acc(b, acc[0]);
+            return $$Buffer.add_string(b, Curry._1(acc[1], /* () */0));
+        case 7 : 
+            _acc = acc[0];
+            continue ;
+        case 8 : 
+            strput_acc(b, acc[0]);
+            throw [
+                  Caml_builtin_exceptions.invalid_argument,
+                  acc[1]
+                ];
+        
+      }
+    }
+    switch (exit) {
+      case 1 : 
+          strput_acc(b, acc[0]);
+          return $$Buffer.add_string(b, acc[1]);
+      case 2 : 
+          strput_acc(b, acc[0]);
+          return $$Buffer.add_char(b, acc[1]);
+      
+    }
+  };
+}
+
+function failwith_message(param) {
+  var buf = $$Buffer.create(256);
+  var k = function (_, acc) {
+    strput_acc(buf, acc);
+    var s = $$Buffer.contents(buf);
+    throw [
+          Caml_builtin_exceptions.failure,
+          s
+        ];
+  };
+  return make_printf(k, /* () */0, /* End_of_acc */0, param[0]);
+}
+
+function open_box_of_string(str) {
+  if (str === "") {
+    return /* tuple */[
+            0,
+            /* Pp_box */4
+          ];
+  } else {
+    var len = str.length;
+    var invalid_box = function () {
+      return Curry._1(failwith_message(/* Format */[
+                      /* String_literal */Block.__(11, [
+                          "invalid box description ",
+                          /* Caml_string */Block.__(3, [
+                              /* No_padding */0,
+                              /* End_of_format */0
+                            ])
+                        ]),
+                      "invalid box description %S"
+                    ]), str);
+    };
+    var parse_spaces = function (_i) {
+      while(true) {
+        var i = _i;
+        if (i === len) {
+          return i;
+        } else {
+          var match = Caml_string.get(str, i);
+          if (match !== 9) {
+            if (match !== 32) {
+              return i;
+            } else {
+              _i = i + 1 | 0;
+              continue ;
+            }
+          } else {
+            _i = i + 1 | 0;
+            continue ;
+          }
+        }
+      };
+    };
+    var parse_lword = function (_, _j) {
+      while(true) {
+        var j = _j;
+        if (j === len) {
+          return j;
+        } else {
+          var match = Caml_string.get(str, j);
+          if (match > 122 || match < 97) {
+            return j;
+          } else {
+            _j = j + 1 | 0;
+            continue ;
+          }
+        }
+      };
+    };
+    var parse_int = function (_, _j) {
+      while(true) {
+        var j = _j;
+        if (j === len) {
+          return j;
+        } else {
+          var match = Caml_string.get(str, j);
+          if (match >= 48) {
+            if (match >= 58) {
+              return j;
+            } else {
+              _j = j + 1 | 0;
+              continue ;
+            }
+          } else if (match !== 45) {
+            return j;
+          } else {
+            _j = j + 1 | 0;
+            continue ;
+          }
+        }
+      };
+    };
+    var wstart = parse_spaces(0);
+    var wend = parse_lword(wstart, wstart);
+    var box_name = $$String.sub(str, wstart, wend - wstart | 0);
+    var nstart = parse_spaces(wend);
+    var nend = parse_int(nstart, nstart);
+    var indent;
+    if (nstart === nend) {
+      indent = 0;
+    } else {
+      try {
+        indent = Caml_format.caml_int_of_string($$String.sub(str, nstart, nend - nstart | 0));
+      }
+      catch (raw_exn){
+        var exn = Js_exn.internalToOCamlException(raw_exn);
+        if (exn[0] === Caml_builtin_exceptions.failure) {
+          indent = invalid_box(/* () */0);
+        } else {
+          throw exn;
+        }
+      }
+    }
+    var exp_end = parse_spaces(nend);
+    if (exp_end !== len) {
+      invalid_box(/* () */0);
+    }
+    var box_type;
+    switch (box_name) {
+      case "" : 
+      case "b" : 
+          box_type = /* Pp_box */4;
+          break;
+      case "h" : 
+          box_type = /* Pp_hbox */0;
+          break;
+      case "hov" : 
+          box_type = /* Pp_hovbox */3;
+          break;
+      case "hv" : 
+          box_type = /* Pp_hvbox */2;
+          break;
+      case "v" : 
+          box_type = /* Pp_vbox */1;
+          break;
+      default:
+        box_type = invalid_box(/* () */0);
+    }
+    return /* tuple */[
+            indent,
+            box_type
+          ];
+  }
+}
+
+function make_padding_fmt_ebb(pad, fmt) {
+  if (typeof pad === "number") {
+    return /* Padding_fmt_EBB */[
+            /* No_padding */0,
+            fmt
+          ];
+  } else if (pad.tag) {
+    return /* Padding_fmt_EBB */[
+            /* Arg_padding */Block.__(1, [pad[0]]),
+            fmt
+          ];
+  } else {
+    return /* Padding_fmt_EBB */[
+            /* Lit_padding */Block.__(0, [
+                pad[0],
+                pad[1]
+              ]),
+            fmt
+          ];
+  }
+}
+
+function make_precision_fmt_ebb(prec, fmt) {
+  if (typeof prec === "number") {
+    if (prec !== 0) {
+      return /* Precision_fmt_EBB */[
+              /* Arg_precision */1,
+              fmt
+            ];
+    } else {
+      return /* Precision_fmt_EBB */[
+              /* No_precision */0,
+              fmt
+            ];
+    }
+  } else {
+    return /* Precision_fmt_EBB */[
+            /* Lit_precision */[prec[0]],
+            fmt
+          ];
+  }
+}
+
+function make_padprec_fmt_ebb(pad, prec, fmt) {
+  var match = make_precision_fmt_ebb(prec, fmt);
+  var fmt$prime = match[1];
+  var prec$1 = match[0];
+  if (typeof pad === "number") {
+    return /* Padprec_fmt_EBB */[
+            /* No_padding */0,
+            prec$1,
+            fmt$prime
+          ];
+  } else if (pad.tag) {
+    return /* Padprec_fmt_EBB */[
+            /* Arg_padding */Block.__(1, [pad[0]]),
+            prec$1,
+            fmt$prime
+          ];
+  } else {
+    return /* Padprec_fmt_EBB */[
+            /* Lit_padding */Block.__(0, [
+                pad[0],
+                pad[1]
+              ]),
+            prec$1,
+            fmt$prime
+          ];
+  }
+}
+
+function fmt_ebb_of_string(legacy_behavior, str) {
+  var legacy_behavior$1 = legacy_behavior !== undefined ? legacy_behavior : true;
+  var invalid_format_message = function (str_ind, msg) {
+    return Curry._3(failwith_message(/* Format */[
+                    /* String_literal */Block.__(11, [
+                        "invalid format ",
+                        /* Caml_string */Block.__(3, [
+                            /* No_padding */0,
+                            /* String_literal */Block.__(11, [
+                                ": at character number ",
+                                /* Int */Block.__(4, [
+                                    /* Int_d */0,
+                                    /* No_padding */0,
+                                    /* No_precision */0,
+                                    /* String_literal */Block.__(11, [
+                                        ", ",
+                                        /* String */Block.__(2, [
+                                            /* No_padding */0,
+                                            /* End_of_format */0
+                                          ])
+                                      ])
+                                  ])
+                              ])
+                          ])
+                      ]),
+                    "invalid format %S: at character number %d, %s"
+                  ]), str, str_ind, msg);
+  };
+  var invalid_format_without = function (str_ind, c, s) {
+    return Curry._4(failwith_message(/* Format */[
+                    /* String_literal */Block.__(11, [
+                        "invalid format ",
+                        /* Caml_string */Block.__(3, [
+                            /* No_padding */0,
+                            /* String_literal */Block.__(11, [
+                                ": at character number ",
+                                /* Int */Block.__(4, [
+                                    /* Int_d */0,
+                                    /* No_padding */0,
+                                    /* No_precision */0,
+                                    /* String_literal */Block.__(11, [
+                                        ", '",
+                                        /* Char */Block.__(0, [/* String_literal */Block.__(11, [
+                                                "' without ",
+                                                /* String */Block.__(2, [
+                                                    /* No_padding */0,
+                                                    /* End_of_format */0
+                                                  ])
+                                              ])])
+                                      ])
+                                  ])
+                              ])
+                          ])
+                      ]),
+                    "invalid format %S: at character number %d, '%c' without %s"
+                  ]), str, str_ind, c, s);
+  };
+  var expected_character = function (str_ind, expected, read) {
+    return Curry._4(failwith_message(/* Format */[
+                    /* String_literal */Block.__(11, [
+                        "invalid format ",
+                        /* Caml_string */Block.__(3, [
+                            /* No_padding */0,
+                            /* String_literal */Block.__(11, [
+                                ": at character number ",
+                                /* Int */Block.__(4, [
+                                    /* Int_d */0,
+                                    /* No_padding */0,
+                                    /* No_precision */0,
+                                    /* String_literal */Block.__(11, [
+                                        ", ",
+                                        /* String */Block.__(2, [
+                                            /* No_padding */0,
+                                            /* String_literal */Block.__(11, [
+                                                " expected, read ",
+                                                /* Caml_char */Block.__(1, [/* End_of_format */0])
+                                              ])
+                                          ])
+                                      ])
+                                  ])
+                              ])
+                          ])
+                      ]),
+                    "invalid format %S: at character number %d, %s expected, read %C"
+                  ]), str, str_ind, expected, read);
+  };
+  var compute_int_conv = function (pct_ind, str_ind, _plus, _sharp, _space, symb) {
+    while(true) {
+      var space = _space;
+      var sharp = _sharp;
+      var plus = _plus;
+      var exit = 0;
+      var exit$1 = 0;
+      if (plus) {
+        if (sharp) {
+          exit$1 = 2;
+        } else if (space) {
+          exit = 1;
+        } else if (symb !== 100) {
+          if (symb !== 105) {
+            exit = 1;
+          } else {
+            return /* Int_pi */4;
+          }
+        } else {
+          return /* Int_pd */1;
+        }
+      } else if (sharp) {
+        if (space) {
+          exit$1 = 2;
+        } else if (symb !== 88) {
+          if (symb !== 111) {
+            if (symb !== 120) {
+              exit$1 = 2;
+            } else {
+              return /* Int_Cx */7;
+            }
+          } else {
+            return /* Int_Co */11;
+          }
+        } else {
+          return /* Int_CX */9;
+        }
+      } else if (space) {
+        if (symb !== 100) {
+          if (symb !== 105) {
+            exit = 1;
+          } else {
+            return /* Int_si */5;
+          }
+        } else {
+          return /* Int_sd */2;
+        }
+      } else {
+        var switcher = symb - 88 | 0;
+        if (switcher > 32 || switcher < 0) {
+          exit = 1;
+        } else {
+          switch (switcher) {
+            case 0 : 
+                return /* Int_X */8;
+            case 12 : 
+                return /* Int_d */0;
+            case 17 : 
+                return /* Int_i */3;
+            case 23 : 
+                return /* Int_o */10;
+            case 29 : 
+                return /* Int_u */12;
+            case 1 : 
+            case 2 : 
+            case 3 : 
+            case 4 : 
+            case 5 : 
+            case 6 : 
+            case 7 : 
+            case 8 : 
+            case 9 : 
+            case 10 : 
+            case 11 : 
+            case 13 : 
+            case 14 : 
+            case 15 : 
+            case 16 : 
+            case 18 : 
+            case 19 : 
+            case 20 : 
+            case 21 : 
+            case 22 : 
+            case 24 : 
+            case 25 : 
+            case 26 : 
+            case 27 : 
+            case 28 : 
+            case 30 : 
+            case 31 : 
+                exit = 1;
+                break;
+            case 32 : 
+                return /* Int_x */6;
+            
+          }
+        }
+      }
+      if (exit$1 === 2) {
+        var exit$2 = 0;
+        var switcher$1 = symb - 88 | 0;
+        if (switcher$1 > 32 || switcher$1 < 0) {
+          exit = 1;
+        } else {
+          switch (switcher$1) {
+            case 0 : 
+                if (legacy_behavior$1) {
+                  return /* Int_CX */9;
+                } else {
+                  exit = 1;
+                }
+                break;
+            case 23 : 
+                if (legacy_behavior$1) {
+                  return /* Int_Co */11;
+                } else {
+                  exit = 1;
+                }
+                break;
+            case 12 : 
+            case 17 : 
+            case 29 : 
+                exit$2 = 3;
+                break;
+            case 1 : 
+            case 2 : 
+            case 3 : 
+            case 4 : 
+            case 5 : 
+            case 6 : 
+            case 7 : 
+            case 8 : 
+            case 9 : 
+            case 10 : 
+            case 11 : 
+            case 13 : 
+            case 14 : 
+            case 15 : 
+            case 16 : 
+            case 18 : 
+            case 19 : 
+            case 20 : 
+            case 21 : 
+            case 22 : 
+            case 24 : 
+            case 25 : 
+            case 26 : 
+            case 27 : 
+            case 28 : 
+            case 30 : 
+            case 31 : 
+                exit = 1;
+                break;
+            case 32 : 
+                if (legacy_behavior$1) {
+                  return /* Int_Cx */7;
+                } else {
+                  exit = 1;
+                }
+                break;
+            
+          }
+        }
+        if (exit$2 === 3) {
+          if (legacy_behavior$1) {
+            _sharp = false;
+            continue ;
+          } else {
+            return incompatible_flag(pct_ind, str_ind, symb, "'#'");
+          }
+        }
+        
+      }
+      if (exit === 1) {
+        if (plus) {
+          if (space) {
+            if (legacy_behavior$1) {
+              _space = false;
+              continue ;
+            } else {
+              return incompatible_flag(pct_ind, str_ind, /* " " */32, "'+'");
+            }
+          } else if (legacy_behavior$1) {
+            _plus = false;
+            continue ;
+          } else {
+            return incompatible_flag(pct_ind, str_ind, symb, "'+'");
+          }
+        } else if (space) {
+          if (legacy_behavior$1) {
+            _space = false;
+            continue ;
+          } else {
+            return incompatible_flag(pct_ind, str_ind, symb, "' '");
+          }
+        } else {
+          throw [
+                Caml_builtin_exceptions.assert_failure,
+                /* tuple */[
+                  "camlinternalFormat.ml",
+                  2719,
+                  28
+                ]
+              ];
+        }
+      }
+      
+    };
+  };
+  var incompatible_flag = function (pct_ind, str_ind, symb, option) {
+    var subfmt = $$String.sub(str, pct_ind, str_ind - pct_ind | 0);
+    return Curry._5(failwith_message(/* Format */[
+                    /* String_literal */Block.__(11, [
+                        "invalid format ",
+                        /* Caml_string */Block.__(3, [
+                            /* No_padding */0,
+                            /* String_literal */Block.__(11, [
+                                ": at character number ",
+                                /* Int */Block.__(4, [
+                                    /* Int_d */0,
+                                    /* No_padding */0,
+                                    /* No_precision */0,
+                                    /* String_literal */Block.__(11, [
+                                        ", ",
+                                        /* String */Block.__(2, [
+                                            /* No_padding */0,
+                                            /* String_literal */Block.__(11, [
+                                                " is incompatible with '",
+                                                /* Char */Block.__(0, [/* String_literal */Block.__(11, [
+                                                        "' in sub-format ",
+                                                        /* Caml_string */Block.__(3, [
+                                                            /* No_padding */0,
+                                                            /* End_of_format */0
+                                                          ])
+                                                      ])])
+                                              ])
+                                          ])
+                                      ])
+                                  ])
+                              ])
+                          ])
+                      ]),
+                    "invalid format %S: at character number %d, %s is incompatible with '%c' in sub-format %S"
+                  ]), str, pct_ind, option, symb, subfmt);
+  };
+  var parse_positive = function (_str_ind, end_ind, _acc) {
+    while(true) {
+      var acc = _acc;
+      var str_ind = _str_ind;
+      if (str_ind === end_ind) {
+        invalid_format_message(end_ind, "unexpected end of format");
+      }
+      var c = Caml_string.get(str, str_ind);
+      if (c > 57 || c < 48) {
+        return /* tuple */[
+                str_ind,
+                acc
+              ];
+      } else {
+        var new_acc = Caml_int32.imul(acc, 10) + (c - /* "0" */48 | 0) | 0;
+        _acc = new_acc;
+        _str_ind = str_ind + 1 | 0;
+        continue ;
+      }
+    };
+  };
+  var parse_after_precision = function (pct_ind, str_ind, end_ind, minus, plus, sharp, space, ign, pad, prec) {
+    if (str_ind === end_ind) {
+      invalid_format_message(end_ind, "unexpected end of format");
+    }
+    var parse_conv = function (padprec) {
+      return parse_conversion(pct_ind, str_ind + 1 | 0, end_ind, plus, sharp, space, ign, pad, prec, padprec, Caml_string.get(str, str_ind));
+    };
+    if (typeof pad === "number") {
+      var exit = 0;
+      if (typeof prec === "number" && prec === 0) {
+        return parse_conv(/* No_padding */0);
+      } else {
+        exit = 1;
+      }
+      if (exit === 1) {
+        if (minus) {
+          if (typeof prec === "number") {
+            return parse_conv(/* Arg_padding */Block.__(1, [/* Left */0]));
+          } else {
+            return parse_conv(/* Lit_padding */Block.__(0, [
+                          /* Left */0,
+                          prec[0]
+                        ]));
+          }
+        } else if (typeof prec === "number") {
+          return parse_conv(/* Arg_padding */Block.__(1, [/* Right */1]));
+        } else {
+          return parse_conv(/* Lit_padding */Block.__(0, [
+                        /* Right */1,
+                        prec[0]
+                      ]));
+        }
+      }
+      
+    } else {
+      return parse_conv(pad);
+    }
+  };
+  var parse_after_padding = function (pct_ind, str_ind, end_ind, minus, plus, sharp, space, ign, pad) {
+    if (str_ind === end_ind) {
+      invalid_format_message(end_ind, "unexpected end of format");
+    }
+    var symb = Caml_string.get(str, str_ind);
+    if (symb !== 46) {
+      return parse_conversion(pct_ind, str_ind + 1 | 0, end_ind, plus, sharp, space, ign, pad, /* No_precision */0, pad, symb);
+    } else {
+      var pct_ind$1 = pct_ind;
+      var str_ind$1 = str_ind + 1 | 0;
+      var end_ind$1 = end_ind;
+      var minus$1 = minus;
+      var plus$1 = plus;
+      var sharp$1 = sharp;
+      var space$1 = space;
+      var ign$1 = ign;
+      var pad$1 = pad;
+      if (str_ind$1 === end_ind$1) {
+        invalid_format_message(end_ind$1, "unexpected end of format");
+      }
+      var parse_literal = function (minus, str_ind) {
+        var match = parse_positive(str_ind, end_ind$1, 0);
+        return parse_after_precision(pct_ind$1, match[0], end_ind$1, minus, plus$1, sharp$1, space$1, ign$1, pad$1, /* Lit_precision */[match[1]]);
+      };
+      var symb$1 = Caml_string.get(str, str_ind$1);
+      var exit = 0;
+      var exit$1 = 0;
+      if (symb$1 >= 48) {
+        if (symb$1 >= 58) {
+          exit = 1;
+        } else {
+          return parse_literal(minus$1, str_ind$1);
+        }
+      } else if (symb$1 >= 42) {
+        switch (symb$1 - 42 | 0) {
+          case 0 : 
+              return parse_after_precision(pct_ind$1, str_ind$1 + 1 | 0, end_ind$1, minus$1, plus$1, sharp$1, space$1, ign$1, pad$1, /* Arg_precision */1);
+          case 1 : 
+          case 3 : 
+              exit$1 = 2;
+              break;
+          case 2 : 
+          case 4 : 
+          case 5 : 
+              exit = 1;
+              break;
+          
+        }
+      } else {
+        exit = 1;
+      }
+      if (exit$1 === 2) {
+        if (legacy_behavior$1) {
+          return parse_literal(minus$1 || symb$1 === /* "-" */45, str_ind$1 + 1 | 0);
+        } else {
+          exit = 1;
+        }
+      }
+      if (exit === 1) {
+        if (legacy_behavior$1) {
+          return parse_after_precision(pct_ind$1, str_ind$1, end_ind$1, minus$1, plus$1, sharp$1, space$1, ign$1, pad$1, /* Lit_precision */[0]);
+        } else {
+          return invalid_format_without(str_ind$1 - 1 | 0, /* "." */46, "precision");
+        }
+      }
+      
+    }
+  };
+  var parse_literal = function (lit_start, _str_ind, end_ind) {
+    while(true) {
+      var str_ind = _str_ind;
+      if (str_ind === end_ind) {
+        return add_literal(lit_start, str_ind, /* End_of_format */0);
+      } else {
+        var match = Caml_string.get(str, str_ind);
+        if (match !== 37) {
+          if (match !== 64) {
+            _str_ind = str_ind + 1 | 0;
+            continue ;
+          } else {
+            var match$1 = parse_after_at(str_ind + 1 | 0, end_ind);
+            return add_literal(lit_start, str_ind, match$1[0]);
+          }
+        } else {
+          var match$2 = parse_format(str_ind, end_ind);
+          return add_literal(lit_start, str_ind, match$2[0]);
+        }
+      }
+    };
+  };
+  var parse_format = function (pct_ind, end_ind) {
+    var pct_ind$1 = pct_ind;
+    var str_ind = pct_ind + 1 | 0;
+    var end_ind$1 = end_ind;
+    if (str_ind === end_ind$1) {
+      invalid_format_message(end_ind$1, "unexpected end of format");
+    }
+    var match = Caml_string.get(str, str_ind);
+    if (match !== 95) {
+      return parse_flags(pct_ind$1, str_ind, end_ind$1, false);
+    } else {
+      return parse_flags(pct_ind$1, str_ind + 1 | 0, end_ind$1, true);
+    }
+  };
+  var parse_after_at = function (str_ind, end_ind) {
+    if (str_ind === end_ind) {
+      return /* Fmt_EBB */[/* Char_literal */Block.__(12, [
+                  /* "@" */64,
+                  /* End_of_format */0
+                ])];
+    } else {
+      var c = Caml_string.get(str, str_ind);
+      var exit = 0;
+      if (c >= 65) {
+        if (c >= 94) {
+          var switcher = c - 123 | 0;
+          if (switcher > 2 || switcher < 0) {
+            exit = 1;
+          } else {
+            switch (switcher) {
+              case 0 : 
+                  return parse_tag(true, str_ind + 1 | 0, end_ind);
+              case 1 : 
+                  exit = 1;
+                  break;
+              case 2 : 
+                  var beg_ind = str_ind + 1 | 0;
+                  var match = parse_literal(beg_ind, beg_ind, end_ind);
+                  return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                              /* Close_tag */1,
+                              match[0]
+                            ])];
+              
+            }
+          }
+        } else if (c >= 91) {
+          switch (c - 91 | 0) {
+            case 0 : 
+                return parse_tag(false, str_ind + 1 | 0, end_ind);
+            case 1 : 
+                exit = 1;
+                break;
+            case 2 : 
+                var beg_ind$1 = str_ind + 1 | 0;
+                var match$1 = parse_literal(beg_ind$1, beg_ind$1, end_ind);
+                return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                            /* Close_box */0,
+                            match$1[0]
+                          ])];
+            
+          }
+        } else {
+          exit = 1;
+        }
+      } else if (c !== 10) {
+        if (c >= 32) {
+          switch (c - 32 | 0) {
+            case 0 : 
+                var beg_ind$2 = str_ind + 1 | 0;
+                var match$2 = parse_literal(beg_ind$2, beg_ind$2, end_ind);
+                return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                            /* Break */Block.__(0, [
+                                "@ ",
+                                1,
+                                0
+                              ]),
+                            match$2[0]
+                          ])];
+            case 5 : 
+                if ((str_ind + 1 | 0) < end_ind && Caml_string.get(str, str_ind + 1 | 0) === /* "%" */37) {
+                  var beg_ind$3 = str_ind + 2 | 0;
+                  var match$3 = parse_literal(beg_ind$3, beg_ind$3, end_ind);
+                  return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                              /* Escaped_percent */6,
+                              match$3[0]
+                            ])];
+                } else {
+                  var match$4 = parse_literal(str_ind, str_ind, end_ind);
+                  return /* Fmt_EBB */[/* Char_literal */Block.__(12, [
+                              /* "@" */64,
+                              match$4[0]
+                            ])];
+                }
+            case 12 : 
+                var beg_ind$4 = str_ind + 1 | 0;
+                var match$5 = parse_literal(beg_ind$4, beg_ind$4, end_ind);
+                return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                            /* Break */Block.__(0, [
+                                "@,",
+                                0,
+                                0
+                              ]),
+                            match$5[0]
+                          ])];
+            case 14 : 
+                var beg_ind$5 = str_ind + 1 | 0;
+                var match$6 = parse_literal(beg_ind$5, beg_ind$5, end_ind);
+                return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                            /* Flush_newline */4,
+                            match$6[0]
+                          ])];
+            case 27 : 
+                var str_ind$1 = str_ind + 1 | 0;
+                var end_ind$1 = end_ind;
+                var match$7;
+                try {
+                  if (str_ind$1 === end_ind$1 || Caml_string.get(str, str_ind$1) !== /* "<" */60) {
+                    throw Caml_builtin_exceptions.not_found;
+                  }
+                  var str_ind_1 = parse_spaces(str_ind$1 + 1 | 0, end_ind$1);
+                  var match$8 = Caml_string.get(str, str_ind_1);
+                  var exit$1 = 0;
+                  if (match$8 >= 48) {
+                    if (match$8 >= 58) {
+                      throw Caml_builtin_exceptions.not_found;
+                    } else {
+                      exit$1 = 1;
+                    }
+                  } else if (match$8 !== 45) {
+                    throw Caml_builtin_exceptions.not_found;
+                  } else {
+                    exit$1 = 1;
+                  }
+                  if (exit$1 === 1) {
+                    var match$9 = parse_integer(str_ind_1, end_ind$1);
+                    var width = match$9[1];
+                    var str_ind_3 = parse_spaces(match$9[0], end_ind$1);
+                    var match$10 = Caml_string.get(str, str_ind_3);
+                    var switcher$1 = match$10 - 45 | 0;
+                    if (switcher$1 > 12 || switcher$1 < 0) {
+                      if (switcher$1 !== 17) {
+                        throw Caml_builtin_exceptions.not_found;
+                      } else {
+                        var s = $$String.sub(str, str_ind$1 - 2 | 0, (str_ind_3 - str_ind$1 | 0) + 3 | 0);
+                        match$7 = /* tuple */[
+                          str_ind_3 + 1 | 0,
+                          /* Break */Block.__(0, [
+                              s,
+                              width,
+                              0
+                            ])
+                        ];
+                      }
+                    } else if (switcher$1 === 2 || switcher$1 === 1) {
+                      throw Caml_builtin_exceptions.not_found;
+                    } else {
+                      var match$11 = parse_integer(str_ind_3, end_ind$1);
+                      var str_ind_5 = parse_spaces(match$11[0], end_ind$1);
+                      if (Caml_string.get(str, str_ind_5) !== /* ">" */62) {
+                        throw Caml_builtin_exceptions.not_found;
+                      }
+                      var s$1 = $$String.sub(str, str_ind$1 - 2 | 0, (str_ind_5 - str_ind$1 | 0) + 3 | 0);
+                      match$7 = /* tuple */[
+                        str_ind_5 + 1 | 0,
+                        /* Break */Block.__(0, [
+                            s$1,
+                            width,
+                            match$11[1]
+                          ])
+                      ];
+                    }
+                  }
+                  
+                }
+                catch (raw_exn){
+                  var exn = Js_exn.internalToOCamlException(raw_exn);
+                  if (exn === Caml_builtin_exceptions.not_found || exn[0] === Caml_builtin_exceptions.failure) {
+                    match$7 = /* tuple */[
+                      str_ind$1,
+                      /* Break */Block.__(0, [
+                          "@;",
+                          1,
+                          0
+                        ])
+                    ];
+                  } else {
+                    throw exn;
+                  }
+                }
+                var next_ind = match$7[0];
+                var match$12 = parse_literal(next_ind, next_ind, end_ind$1);
+                return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                            match$7[1],
+                            match$12[0]
+                          ])];
+            case 28 : 
+                var str_ind$2 = str_ind + 1 | 0;
+                var end_ind$2 = end_ind;
+                var match$13;
+                try {
+                  var str_ind_1$1 = parse_spaces(str_ind$2, end_ind$2);
+                  var match$14 = Caml_string.get(str, str_ind_1$1);
+                  var exit$2 = 0;
+                  if (match$14 >= 48) {
+                    if (match$14 >= 58) {
+                      match$13 = undefined;
+                    } else {
+                      exit$2 = 1;
+                    }
+                  } else if (match$14 !== 45) {
+                    match$13 = undefined;
+                  } else {
+                    exit$2 = 1;
+                  }
+                  if (exit$2 === 1) {
+                    var match$15 = parse_integer(str_ind_1$1, end_ind$2);
+                    var str_ind_3$1 = parse_spaces(match$15[0], end_ind$2);
+                    if (Caml_string.get(str, str_ind_3$1) !== /* ">" */62) {
+                      throw Caml_builtin_exceptions.not_found;
+                    }
+                    var s$2 = $$String.sub(str, str_ind$2 - 2 | 0, (str_ind_3$1 - str_ind$2 | 0) + 3 | 0);
+                    match$13 = /* tuple */[
+                      str_ind_3$1 + 1 | 0,
+                      /* Magic_size */Block.__(1, [
+                          s$2,
+                          match$15[1]
+                        ])
+                    ];
+                  }
+                  
+                }
+                catch (raw_exn$1){
+                  var exn$1 = Js_exn.internalToOCamlException(raw_exn$1);
+                  if (exn$1 === Caml_builtin_exceptions.not_found || exn$1[0] === Caml_builtin_exceptions.failure) {
+                    match$13 = undefined;
+                  } else {
+                    throw exn$1;
+                  }
+                }
+                if (match$13 !== undefined) {
+                  var match$16 = match$13;
+                  var next_ind$1 = match$16[0];
+                  var match$17 = parse_literal(next_ind$1, next_ind$1, end_ind$2);
+                  return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                              match$16[1],
+                              match$17[0]
+                            ])];
+                } else {
+                  var match$18 = parse_literal(str_ind$2, str_ind$2, end_ind$2);
+                  return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                              /* Scan_indic */Block.__(2, [/* "<" */60]),
+                              match$18[0]
+                            ])];
+                }
+            case 1 : 
+            case 2 : 
+            case 3 : 
+            case 4 : 
+            case 6 : 
+            case 7 : 
+            case 8 : 
+            case 9 : 
+            case 10 : 
+            case 11 : 
+            case 13 : 
+            case 15 : 
+            case 16 : 
+            case 17 : 
+            case 18 : 
+            case 19 : 
+            case 20 : 
+            case 21 : 
+            case 22 : 
+            case 23 : 
+            case 24 : 
+            case 25 : 
+            case 26 : 
+            case 29 : 
+            case 30 : 
+                exit = 1;
+                break;
+            case 31 : 
+                var beg_ind$6 = str_ind + 1 | 0;
+                var match$19 = parse_literal(beg_ind$6, beg_ind$6, end_ind);
+                return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                            /* FFlush */2,
+                            match$19[0]
+                          ])];
+            case 32 : 
+                var beg_ind$7 = str_ind + 1 | 0;
+                var match$20 = parse_literal(beg_ind$7, beg_ind$7, end_ind);
+                return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                            /* Escaped_at */5,
+                            match$20[0]
+                          ])];
+            
+          }
+        } else {
+          exit = 1;
+        }
+      } else {
+        var beg_ind$8 = str_ind + 1 | 0;
+        var match$21 = parse_literal(beg_ind$8, beg_ind$8, end_ind);
+        return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                    /* Force_newline */3,
+                    match$21[0]
+                  ])];
+      }
+      if (exit === 1) {
+        var beg_ind$9 = str_ind + 1 | 0;
+        var match$22 = parse_literal(beg_ind$9, beg_ind$9, end_ind);
+        return /* Fmt_EBB */[/* Formatting_lit */Block.__(17, [
+                    /* Scan_indic */Block.__(2, [c]),
+                    match$22[0]
+                  ])];
+      }
+      
+    }
+  };
+  var add_literal = function (lit_start, str_ind, fmt) {
+    var size = str_ind - lit_start | 0;
+    if (size !== 0) {
+      if (size !== 1) {
+        return /* Fmt_EBB */[/* String_literal */Block.__(11, [
+                    $$String.sub(str, lit_start, size),
+                    fmt
+                  ])];
+      } else {
+        return /* Fmt_EBB */[/* Char_literal */Block.__(12, [
+                    Caml_string.get(str, lit_start),
+                    fmt
+                  ])];
+      }
+    } else {
+      return /* Fmt_EBB */[fmt];
+    }
+  };
+  var parse_spaces = function (_str_ind, end_ind) {
+    while(true) {
+      var str_ind = _str_ind;
+      if (str_ind === end_ind) {
+        invalid_format_message(end_ind, "unexpected end of format");
+      }
+      if (Caml_string.get(str, str_ind) === /* " " */32) {
+        _str_ind = str_ind + 1 | 0;
+        continue ;
+      } else {
+        return str_ind;
+      }
+    };
+  };
+  var parse_integer = function (str_ind, end_ind) {
+    if (str_ind === end_ind) {
+      invalid_format_message(end_ind, "unexpected end of format");
+    }
+    var match = Caml_string.get(str, str_ind);
+    if (match >= 48) {
+      if (match >= 58) {
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                2624,
+                11
+              ]
+            ];
+      } else {
+        return parse_positive(str_ind, end_ind, 0);
+      }
+    } else if (match !== 45) {
+      throw [
+            Caml_builtin_exceptions.assert_failure,
+            /* tuple */[
+              "camlinternalFormat.ml",
+              2624,
+              11
+            ]
+          ];
+    } else {
+      if ((str_ind + 1 | 0) === end_ind) {
+        invalid_format_message(end_ind, "unexpected end of format");
+      }
+      var c = Caml_string.get(str, str_ind + 1 | 0);
+      if (c > 57 || c < 48) {
+        return expected_character(str_ind + 1 | 0, "digit", c);
+      } else {
+        var match$1 = parse_positive(str_ind + 1 | 0, end_ind, 0);
+        return /* tuple */[
+                match$1[0],
+                -match$1[1] | 0
+              ];
+      }
+    }
+  };
+  var compute_float_conv = function (pct_ind, str_ind, _plus, _space, symb) {
+    while(true) {
+      var space = _space;
+      var plus = _plus;
+      if (plus) {
+        if (space) {
+          if (legacy_behavior$1) {
+            _space = false;
+            continue ;
+          } else {
+            return incompatible_flag(pct_ind, str_ind, /* " " */32, "'+'");
+          }
+        } else {
+          var exit = 0;
+          if (symb >= 72) {
+            var switcher = symb - 101 | 0;
+            if (switcher > 2 || switcher < 0) {
+              exit = 1;
+            } else {
+              switch (switcher) {
+                case 0 : 
+                    return /* Float_pe */4;
+                case 1 : 
+                    return /* Float_pf */1;
+                case 2 : 
+                    return /* Float_pg */10;
+                
+              }
+            }
+          } else if (symb >= 69) {
+            switch (symb - 69 | 0) {
+              case 0 : 
+                  return /* Float_pE */7;
+              case 1 : 
+                  exit = 1;
+                  break;
+              case 2 : 
+                  return /* Float_pG */13;
+              
+            }
+          } else {
+            exit = 1;
+          }
+          if (exit === 1) {
+            if (legacy_behavior$1) {
+              _plus = false;
+              continue ;
+            } else {
+              return incompatible_flag(pct_ind, str_ind, symb, "'+'");
+            }
+          }
+          
+        }
+      } else if (space) {
+        var exit$1 = 0;
+        if (symb >= 72) {
+          var switcher$1 = symb - 101 | 0;
+          if (switcher$1 > 2 || switcher$1 < 0) {
+            exit$1 = 1;
+          } else {
+            switch (switcher$1) {
+              case 0 : 
+                  return /* Float_se */5;
+              case 1 : 
+                  return /* Float_sf */2;
+              case 2 : 
+                  return /* Float_sg */11;
+              
+            }
+          }
+        } else if (symb >= 69) {
+          switch (symb - 69 | 0) {
+            case 0 : 
+                return /* Float_sE */8;
+            case 1 : 
+                exit$1 = 1;
+                break;
+            case 2 : 
+                return /* Float_sG */14;
+            
+          }
+        } else {
+          exit$1 = 1;
+        }
+        if (exit$1 === 1) {
+          if (legacy_behavior$1) {
+            _space = false;
+            continue ;
+          } else {
+            return incompatible_flag(pct_ind, str_ind, symb, "' '");
+          }
+        }
+        
+      } else if (symb >= 72) {
+        var switcher$2 = symb - 101 | 0;
+        if (switcher$2 > 2 || switcher$2 < 0) {
+          throw [
+                Caml_builtin_exceptions.assert_failure,
+                /* tuple */[
+                  "camlinternalFormat.ml",
+                  2747,
+                  25
+                ]
+              ];
+        } else {
+          switch (switcher$2) {
+            case 0 : 
+                return /* Float_e */3;
+            case 1 : 
+                return /* Float_f */0;
+            case 2 : 
+                return /* Float_g */9;
+            
+          }
+        }
+      } else if (symb >= 69) {
+        switch (symb - 69 | 0) {
+          case 0 : 
+              return /* Float_E */6;
+          case 1 : 
+              return /* Float_F */15;
+          case 2 : 
+              return /* Float_G */12;
+          
+        }
+      } else {
+        throw [
+              Caml_builtin_exceptions.assert_failure,
+              /* tuple */[
+                "camlinternalFormat.ml",
+                2747,
+                25
+              ]
+            ];
+      }
+    };
+  };
+  var search_subformat_end = function (_str_ind, end_ind, c) {
+    while(true) {
+      var str_ind = _str_ind;
+      if (str_ind === end_ind) {
+        Curry._3(failwith_message(/* Format */[
+                  /* String_literal */Block.__(11, [
+                      "invalid format ",
+                      /* Caml_string */Block.__(3, [
+                          /* No_padding */0,
+                          /* String_literal */Block.__(11, [
+                              ": unclosed sub-format, expected \"",
+                              /* Char_literal */Block.__(12, [
+                                  /* "%" */37,
+                                  /* Char */Block.__(0, [/* String_literal */Block.__(11, [
+                                          "\" at character number ",
+                                          /* Int */Block.__(4, [
+                                              /* Int_d */0,
+                                              /* No_padding */0,
+                                              /* No_precision */0,
+                                              /* End_of_format */0
+                                            ])
+                                        ])])
+                                ])
+                            ])
+                        ])
+                    ]),
+                  "invalid format %S: unclosed sub-format, expected \"%%%c\" at character number %d"
+                ]), str, c, end_ind);
+      }
+      var match = Caml_string.get(str, str_ind);
+      if (match !== 37) {
+        _str_ind = str_ind + 1 | 0;
+        continue ;
+      } else {
+        if ((str_ind + 1 | 0) === end_ind) {
+          invalid_format_message(end_ind, "unexpected end of format");
+        }
+        if (Caml_string.get(str, str_ind + 1 | 0) === c) {
+          return str_ind;
+        } else {
+          var match$1 = Caml_string.get(str, str_ind + 1 | 0);
+          var exit = 0;
+          if (match$1 >= 95) {
+            if (match$1 >= 123) {
+              if (match$1 >= 126) {
+                exit = 1;
+              } else {
+                switch (match$1 - 123 | 0) {
+                  case 0 : 
+                      var sub_end = search_subformat_end(str_ind + 2 | 0, end_ind, /* "}" */125);
+                      _str_ind = sub_end + 2 | 0;
+                      continue ;
+                  case 1 : 
+                      exit = 1;
+                      break;
+                  case 2 : 
+                      return expected_character(str_ind + 1 | 0, "character ')'", /* "}" */125);
+                  
+                }
+              }
+            } else if (match$1 >= 96) {
+              exit = 1;
+            } else {
+              if ((str_ind + 2 | 0) === end_ind) {
+                invalid_format_message(end_ind, "unexpected end of format");
+              }
+              var match$2 = Caml_string.get(str, str_ind + 2 | 0);
+              if (match$2 !== 40) {
+                if (match$2 !== 123) {
+                  _str_ind = str_ind + 3 | 0;
+                  continue ;
+                } else {
+                  var sub_end$1 = search_subformat_end(str_ind + 3 | 0, end_ind, /* "}" */125);
+                  _str_ind = sub_end$1 + 2 | 0;
+                  continue ;
+                }
+              } else {
+                var sub_end$2 = search_subformat_end(str_ind + 3 | 0, end_ind, /* ")" */41);
+                _str_ind = sub_end$2 + 2 | 0;
+                continue ;
+              }
+            }
+          } else if (match$1 !== 40) {
+            if (match$1 !== 41) {
+              exit = 1;
+            } else {
+              return expected_character(str_ind + 1 | 0, "character '}'", /* ")" */41);
+            }
+          } else {
+            var sub_end$3 = search_subformat_end(str_ind + 2 | 0, end_ind, /* ")" */41);
+            _str_ind = sub_end$3 + 2 | 0;
+            continue ;
+          }
+          if (exit === 1) {
+            _str_ind = str_ind + 2 | 0;
+            continue ;
+          }
+          
+        }
+      }
+    };
+  };
+  var parse_conversion = function (pct_ind, str_ind, end_ind, plus, sharp, space, ign, pad, prec, padprec, symb) {
+    var plus_used = false;
+    var sharp_used = false;
+    var space_used = false;
+    var ign_used = /* record */[/* contents */false];
+    var pad_used = false;
+    var prec_used = /* record */[/* contents */false];
+    var check_no_0 = function (symb, pad) {
+      if (typeof pad === "number") {
+        return pad;
+      } else if (pad.tag) {
+        if (pad[0] >= 2) {
+          if (legacy_behavior$1) {
+            return /* Arg_padding */Block.__(1, [/* Right */1]);
+          } else {
+            return incompatible_flag(pct_ind, str_ind, symb, "0");
+          }
+        } else {
+          return pad;
+        }
+      } else if (pad[0] >= 2) {
+        if (legacy_behavior$1) {
+          return /* Lit_padding */Block.__(0, [
+                    /* Right */1,
+                    pad[1]
+                  ]);
+        } else {
+          return incompatible_flag(pct_ind, str_ind, symb, "0");
+        }
+      } else {
+        return pad;
+      }
+    };
+    var opt_of_pad = function (c, pad) {
+      if (typeof pad === "number") {
+        return undefined;
+      } else if (pad.tag) {
+        return incompatible_flag(pct_ind, str_ind, c, "'*'");
+      } else {
+        switch (pad[0]) {
+          case 0 : 
+              if (legacy_behavior$1) {
+                return pad[1];
+              } else {
+                return incompatible_flag(pct_ind, str_ind, c, "'-'");
+              }
+          case 1 : 
+              return pad[1];
+          case 2 : 
+              if (legacy_behavior$1) {
+                return pad[1];
+              } else {
+                return incompatible_flag(pct_ind, str_ind, c, "'0'");
+              }
+          
+        }
+      }
+    };
+    var get_prec_opt = function () {
+      prec_used[0] = true;
+      if (typeof prec === "number") {
+        if (prec !== 0) {
+          return incompatible_flag(pct_ind, str_ind, /* "_" */95, "'*'");
+        } else {
+          return undefined;
+        }
+      } else {
+        return prec[0];
+      }
+    };
+    var fmt_result;
+    var exit = 0;
+    var exit$1 = 0;
+    var exit$2 = 0;
+    if (symb >= 124) {
+      exit$1 = 6;
+    } else {
+      switch (symb) {
+        case 33 : 
+            var match = parse_literal(str_ind, str_ind, end_ind);
+            fmt_result = /* Fmt_EBB */[/* Flush */Block.__(10, [match[0]])];
+            break;
+        case 40 : 
+            var sub_end = search_subformat_end(str_ind, end_ind, /* ")" */41);
+            var beg_ind = sub_end + 2 | 0;
+            var match$1 = parse_literal(beg_ind, beg_ind, end_ind);
+            var fmt_rest = match$1[0];
+            var match$2 = parse_literal(str_ind, str_ind, sub_end);
+            var sub_fmtty = fmtty_of_fmt(match$2[0]);
+            if (ign_used[0] = true, ign) {
+              pad_used = true;
+              var ignored_000 = opt_of_pad(/* "_" */95, pad);
+              var ignored = /* Ignored_format_subst */Block.__(8, [
+                  ignored_000,
+                  sub_fmtty
+                ]);
+              fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    ignored,
+                    fmt_rest
+                  ])];
+            } else {
+              pad_used = true;
+              fmt_result = /* Fmt_EBB */[/* Format_subst */Block.__(14, [
+                    opt_of_pad(/* "(" */40, pad),
+                    sub_fmtty,
+                    fmt_rest
+                  ])];
+            }
+            break;
+        case 44 : 
+            fmt_result = parse_literal(str_ind, str_ind, end_ind);
+            break;
+        case 37 : 
+        case 64 : 
+            exit$1 = 4;
+            break;
+        case 67 : 
+            var match$3 = parse_literal(str_ind, str_ind, end_ind);
+            var fmt_rest$1 = match$3[0];
+            fmt_result = (ign_used[0] = true, ign) ? /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    /* Ignored_caml_char */1,
+                    fmt_rest$1
+                  ])] : /* Fmt_EBB */[/* Caml_char */Block.__(1, [fmt_rest$1])];
+            break;
+        case 78 : 
+            var match$4 = parse_literal(str_ind, str_ind, end_ind);
+            var fmt_rest$2 = match$4[0];
+            if (ign_used[0] = true, ign) {
+              var ignored$1 = /* Ignored_scan_get_counter */Block.__(10, [/* Token_counter */2]);
+              fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    ignored$1,
+                    fmt_rest$2
+                  ])];
+            } else {
+              fmt_result = /* Fmt_EBB */[/* Scan_get_counter */Block.__(21, [
+                    /* Token_counter */2,
+                    fmt_rest$2
+                  ])];
+            }
+            break;
+        case 83 : 
+            pad_used = true;
+            var pad$1 = check_no_0(symb, padprec);
+            var match$5 = parse_literal(str_ind, str_ind, end_ind);
+            var fmt_rest$3 = match$5[0];
+            if (ign_used[0] = true, ign) {
+              pad_used = true;
+              var ignored$2 = /* Ignored_caml_string */Block.__(1, [opt_of_pad(/* "_" */95, padprec)]);
+              fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    ignored$2,
+                    fmt_rest$3
+                  ])];
+            } else {
+              var match$6 = make_padding_fmt_ebb(pad$1, fmt_rest$3);
+              fmt_result = /* Fmt_EBB */[/* Caml_string */Block.__(3, [
+                    match$6[0],
+                    match$6[1]
+                  ])];
+            }
+            break;
+        case 91 : 
+            var match$7 = parse_char_set(str_ind, end_ind);
+            var char_set = match$7[1];
+            var next_ind = match$7[0];
+            var match$8 = parse_literal(next_ind, next_ind, end_ind);
+            var fmt_rest$4 = match$8[0];
+            if (ign_used[0] = true, ign) {
+              pad_used = true;
+              var ignored_000$1 = opt_of_pad(/* "_" */95, pad);
+              var ignored$3 = /* Ignored_scan_char_set */Block.__(9, [
+                  ignored_000$1,
+                  char_set
+                ]);
+              fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    ignored$3,
+                    fmt_rest$4
+                  ])];
+            } else {
+              pad_used = true;
+              fmt_result = /* Fmt_EBB */[/* Scan_char_set */Block.__(20, [
+                    opt_of_pad(/* "[" */91, pad),
+                    char_set,
+                    fmt_rest$4
+                  ])];
+            }
+            break;
+        case 32 : 
+        case 35 : 
+        case 43 : 
+        case 45 : 
+        case 95 : 
+            exit$1 = 5;
+            break;
+        case 97 : 
+            var match$9 = parse_literal(str_ind, str_ind, end_ind);
+            fmt_result = /* Fmt_EBB */[/* Alpha */Block.__(15, [match$9[0]])];
+            break;
+        case 66 : 
+        case 98 : 
+            exit$1 = 3;
+            break;
+        case 99 : 
+            var char_format = function (fmt_rest) {
+              if (ign_used[0] = true, ign) {
+                return /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                            /* Ignored_char */0,
+                            fmt_rest
+                          ])];
+              } else {
+                return /* Fmt_EBB */[/* Char */Block.__(0, [fmt_rest])];
+              }
+            };
+            var scan_format = function (fmt_rest) {
+              if (ign_used[0] = true, ign) {
+                return /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                            /* Ignored_scan_next_char */4,
+                            fmt_rest
+                          ])];
+              } else {
+                return /* Fmt_EBB */[/* Scan_next_char */Block.__(22, [fmt_rest])];
+              }
+            };
+            var match$10 = parse_literal(str_ind, str_ind, end_ind);
+            var fmt_rest$5 = match$10[0];
+            pad_used = true;
+            var match$11 = opt_of_pad(/* "c" */99, pad);
+            fmt_result = match$11 !== undefined ? (
+                match$11 !== 0 ? (
+                    legacy_behavior$1 ? char_format(fmt_rest$5) : invalid_format_message(str_ind, "non-zero widths are unsupported for %c conversions")
+                  ) : scan_format(fmt_rest$5)
+              ) : char_format(fmt_rest$5);
+            break;
+        case 69 : 
+        case 70 : 
+        case 71 : 
+        case 101 : 
+        case 102 : 
+        case 103 : 
+            exit$1 = 2;
+            break;
+        case 76 : 
+        case 108 : 
+        case 110 : 
+            exit$2 = 8;
+            break;
+        case 114 : 
+            var match$12 = parse_literal(str_ind, str_ind, end_ind);
+            var fmt_rest$6 = match$12[0];
+            fmt_result = (ign_used[0] = true, ign) ? /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    /* Ignored_reader */3,
+                    fmt_rest$6
+                  ])] : /* Fmt_EBB */[/* Reader */Block.__(19, [fmt_rest$6])];
+            break;
+        case 115 : 
+            pad_used = true;
+            var pad$2 = check_no_0(symb, padprec);
+            var match$13 = parse_literal(str_ind, str_ind, end_ind);
+            var fmt_rest$7 = match$13[0];
+            if (ign_used[0] = true, ign) {
+              pad_used = true;
+              var ignored$4 = /* Ignored_string */Block.__(0, [opt_of_pad(/* "_" */95, padprec)]);
+              fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    ignored$4,
+                    fmt_rest$7
+                  ])];
+            } else {
+              var match$14 = make_padding_fmt_ebb(pad$2, fmt_rest$7);
+              fmt_result = /* Fmt_EBB */[/* String */Block.__(2, [
+                    match$14[0],
+                    match$14[1]
+                  ])];
+            }
+            break;
+        case 116 : 
+            var match$15 = parse_literal(str_ind, str_ind, end_ind);
+            fmt_result = /* Fmt_EBB */[/* Theta */Block.__(16, [match$15[0]])];
+            break;
+        case 88 : 
+        case 100 : 
+        case 105 : 
+        case 111 : 
+        case 117 : 
+        case 120 : 
+            exit$2 = 7;
+            break;
+        case 0 : 
+        case 1 : 
+        case 2 : 
+        case 3 : 
+        case 4 : 
+        case 5 : 
+        case 6 : 
+        case 7 : 
+        case 8 : 
+        case 9 : 
+        case 10 : 
+        case 11 : 
+        case 12 : 
+        case 13 : 
+        case 14 : 
+        case 15 : 
+        case 16 : 
+        case 17 : 
+        case 18 : 
+        case 19 : 
+        case 20 : 
+        case 21 : 
+        case 22 : 
+        case 23 : 
+        case 24 : 
+        case 25 : 
+        case 26 : 
+        case 27 : 
+        case 28 : 
+        case 29 : 
+        case 30 : 
+        case 31 : 
+        case 34 : 
+        case 36 : 
+        case 38 : 
+        case 39 : 
+        case 41 : 
+        case 42 : 
+        case 46 : 
+        case 47 : 
+        case 48 : 
+        case 49 : 
+        case 50 : 
+        case 51 : 
+        case 52 : 
+        case 53 : 
+        case 54 : 
+        case 55 : 
+        case 56 : 
+        case 57 : 
+        case 58 : 
+        case 59 : 
+        case 60 : 
+        case 61 : 
+        case 62 : 
+        case 63 : 
+        case 65 : 
+        case 68 : 
+        case 72 : 
+        case 73 : 
+        case 74 : 
+        case 75 : 
+        case 77 : 
+        case 79 : 
+        case 80 : 
+        case 81 : 
+        case 82 : 
+        case 84 : 
+        case 85 : 
+        case 86 : 
+        case 87 : 
+        case 89 : 
+        case 90 : 
+        case 92 : 
+        case 93 : 
+        case 94 : 
+        case 96 : 
+        case 104 : 
+        case 106 : 
+        case 107 : 
+        case 109 : 
+        case 112 : 
+        case 113 : 
+        case 118 : 
+        case 119 : 
+        case 121 : 
+        case 122 : 
+            exit$1 = 6;
+            break;
+        case 123 : 
+            var sub_end$1 = search_subformat_end(str_ind, end_ind, /* "}" */125);
+            var match$16 = parse_literal(str_ind, str_ind, sub_end$1);
+            var beg_ind$1 = sub_end$1 + 2 | 0;
+            var match$17 = parse_literal(beg_ind$1, beg_ind$1, end_ind);
+            var fmt_rest$8 = match$17[0];
+            var sub_fmtty$1 = fmtty_of_fmt(match$16[0]);
+            if (ign_used[0] = true, ign) {
+              pad_used = true;
+              var ignored_000$2 = opt_of_pad(/* "_" */95, pad);
+              var ignored$5 = /* Ignored_format_arg */Block.__(7, [
+                  ignored_000$2,
+                  sub_fmtty$1
+                ]);
+              fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    ignored$5,
+                    fmt_rest$8
+                  ])];
+            } else {
+              pad_used = true;
+              fmt_result = /* Fmt_EBB */[/* Format_arg */Block.__(13, [
+                    opt_of_pad(/* "{" */123, pad),
+                    sub_fmtty$1,
+                    fmt_rest$8
+                  ])];
+            }
+            break;
+        
+      }
+    }
+    switch (exit$2) {
+      case 7 : 
+          plus_used = true;
+          sharp_used = true;
+          space_used = true;
+          var iconv = compute_int_conv(pct_ind, str_ind, plus, sharp, space, symb);
+          var match$18 = parse_literal(str_ind, str_ind, end_ind);
+          var fmt_rest$9 = match$18[0];
+          if (ign_used[0] = true, ign) {
+            pad_used = true;
+            var ignored_001 = opt_of_pad(/* "_" */95, pad);
+            var ignored$6 = /* Ignored_int */Block.__(2, [
+                iconv,
+                ignored_001
+              ]);
+            fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                  ignored$6,
+                  fmt_rest$9
+                ])];
+          } else {
+            pad_used = true;
+            prec_used[0] = true;
+            var pad$3;
+            var exit$3 = 0;
+            if (typeof prec === "number" && prec === 0) {
+              pad$3 = pad;
+            } else {
+              exit$3 = 9;
+            }
+            if (exit$3 === 9) {
+              pad$3 = typeof pad === "number" ? /* No_padding */0 : (
+                  pad.tag ? (
+                      pad[0] >= 2 ? (
+                          legacy_behavior$1 ? /* Arg_padding */Block.__(1, [/* Right */1]) : incompatible_flag(pct_ind, str_ind, /* "0" */48, "precision")
+                        ) : pad
+                    ) : (
+                      pad[0] >= 2 ? (
+                          legacy_behavior$1 ? /* Lit_padding */Block.__(0, [
+                                /* Right */1,
+                                pad[1]
+                              ]) : incompatible_flag(pct_ind, str_ind, /* "0" */48, "precision")
+                        ) : pad
+                    )
+                );
+            }
+            var match$19 = make_padprec_fmt_ebb(pad$3, (prec_used[0] = true, prec), fmt_rest$9);
+            fmt_result = /* Fmt_EBB */[/* Int */Block.__(4, [
+                  iconv,
+                  match$19[0],
+                  match$19[1],
+                  match$19[2]
+                ])];
+          }
+          break;
+      case 8 : 
+          if (str_ind === end_ind || !is_int_base(Caml_string.get(str, str_ind))) {
+            var match$20 = parse_literal(str_ind, str_ind, end_ind);
+            var fmt_rest$10 = match$20[0];
+            var counter = counter_of_char(symb);
+            if (ign_used[0] = true, ign) {
+              var ignored$7 = /* Ignored_scan_get_counter */Block.__(10, [counter]);
+              fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    ignored$7,
+                    fmt_rest$10
+                  ])];
+            } else {
+              fmt_result = /* Fmt_EBB */[/* Scan_get_counter */Block.__(21, [
+                    counter,
+                    fmt_rest$10
+                  ])];
+            }
+          } else {
+            exit$1 = 6;
+          }
+          break;
+      
+    }
+    switch (exit$1) {
+      case 2 : 
+          plus_used = true;
+          space_used = true;
+          var fconv = compute_float_conv(pct_ind, str_ind, plus, space, symb);
+          var match$21 = parse_literal(str_ind, str_ind, end_ind);
+          var fmt_rest$11 = match$21[0];
+          if (ign_used[0] = true, ign) {
+            pad_used = true;
+            var ignored_000$3 = opt_of_pad(/* "_" */95, pad);
+            var ignored_001$1 = get_prec_opt(/* () */0);
+            var ignored$8 = /* Ignored_float */Block.__(6, [
+                ignored_000$3,
+                ignored_001$1
+              ]);
+            fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                  ignored$8,
+                  fmt_rest$11
+                ])];
+          } else {
+            pad_used = true;
+            var match$22 = make_padprec_fmt_ebb(pad, (prec_used[0] = true, prec), fmt_rest$11);
+            fmt_result = /* Fmt_EBB */[/* Float */Block.__(8, [
+                  fconv,
+                  match$22[0],
+                  match$22[1],
+                  match$22[2]
+                ])];
+          }
+          break;
+      case 3 : 
+          var match$23 = parse_literal(str_ind, str_ind, end_ind);
+          var fmt_rest$12 = match$23[0];
+          fmt_result = (ign_used[0] = true, ign) ? /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                  /* Ignored_bool */2,
+                  fmt_rest$12
+                ])] : /* Fmt_EBB */[/* Bool */Block.__(9, [fmt_rest$12])];
+          break;
+      case 4 : 
+          var match$24 = parse_literal(str_ind, str_ind, end_ind);
+          fmt_result = /* Fmt_EBB */[/* Char_literal */Block.__(12, [
+                symb,
+                match$24[0]
+              ])];
+          break;
+      case 5 : 
+          fmt_result = Curry._3(failwith_message(/* Format */[
+                    /* String_literal */Block.__(11, [
+                        "invalid format ",
+                        /* Caml_string */Block.__(3, [
+                            /* No_padding */0,
+                            /* String_literal */Block.__(11, [
+                                ": at character number ",
+                                /* Int */Block.__(4, [
+                                    /* Int_d */0,
+                                    /* No_padding */0,
+                                    /* No_precision */0,
+                                    /* String_literal */Block.__(11, [
+                                        ", flag ",
+                                        /* Caml_char */Block.__(1, [/* String_literal */Block.__(11, [
+                                                " is only allowed after the '",
+                                                /* Char_literal */Block.__(12, [
+                                                    /* "%" */37,
+                                                    /* String_literal */Block.__(11, [
+                                                        "', before padding and precision",
+                                                        /* End_of_format */0
+                                                      ])
+                                                  ])
+                                              ])])
+                                      ])
+                                  ])
+                              ])
+                          ])
+                      ]),
+                    "invalid format %S: at character number %d, flag %C is only allowed after the '%%', before padding and precision"
+                  ]), str, pct_ind, symb);
+          break;
+      case 6 : 
+          if (symb >= 108) {
+            if (symb >= 111) {
+              exit = 1;
+            } else {
+              switch (symb - 108 | 0) {
+                case 0 : 
+                    plus_used = true;
+                    sharp_used = true;
+                    space_used = true;
+                    var iconv$1 = compute_int_conv(pct_ind, str_ind + 1 | 0, plus, sharp, space, Caml_string.get(str, str_ind));
+                    var beg_ind$2 = str_ind + 1 | 0;
+                    var match$25 = parse_literal(beg_ind$2, beg_ind$2, end_ind);
+                    var fmt_rest$13 = match$25[0];
+                    if (ign_used[0] = true, ign) {
+                      pad_used = true;
+                      var ignored_001$2 = opt_of_pad(/* "_" */95, pad);
+                      var ignored$9 = /* Ignored_int32 */Block.__(3, [
+                          iconv$1,
+                          ignored_001$2
+                        ]);
+                      fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                            ignored$9,
+                            fmt_rest$13
+                          ])];
+                    } else {
+                      pad_used = true;
+                      var match$26 = make_padprec_fmt_ebb(pad, (prec_used[0] = true, prec), fmt_rest$13);
+                      fmt_result = /* Fmt_EBB */[/* Int32 */Block.__(5, [
+                            iconv$1,
+                            match$26[0],
+                            match$26[1],
+                            match$26[2]
+                          ])];
+                    }
+                    break;
+                case 1 : 
+                    exit = 1;
+                    break;
+                case 2 : 
+                    plus_used = true;
+                    sharp_used = true;
+                    space_used = true;
+                    var iconv$2 = compute_int_conv(pct_ind, str_ind + 1 | 0, plus, sharp, space, Caml_string.get(str, str_ind));
+                    var beg_ind$3 = str_ind + 1 | 0;
+                    var match$27 = parse_literal(beg_ind$3, beg_ind$3, end_ind);
+                    var fmt_rest$14 = match$27[0];
+                    if (ign_used[0] = true, ign) {
+                      pad_used = true;
+                      var ignored_001$3 = opt_of_pad(/* "_" */95, pad);
+                      var ignored$10 = /* Ignored_nativeint */Block.__(4, [
+                          iconv$2,
+                          ignored_001$3
+                        ]);
+                      fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                            ignored$10,
+                            fmt_rest$14
+                          ])];
+                    } else {
+                      pad_used = true;
+                      var match$28 = make_padprec_fmt_ebb(pad, (prec_used[0] = true, prec), fmt_rest$14);
+                      fmt_result = /* Fmt_EBB */[/* Nativeint */Block.__(6, [
+                            iconv$2,
+                            match$28[0],
+                            match$28[1],
+                            match$28[2]
+                          ])];
+                    }
+                    break;
+                
+              }
+            }
+          } else if (symb !== 76) {
+            exit = 1;
+          } else {
+            plus_used = true;
+            sharp_used = true;
+            space_used = true;
+            var iconv$3 = compute_int_conv(pct_ind, str_ind + 1 | 0, plus, sharp, space, Caml_string.get(str, str_ind));
+            var beg_ind$4 = str_ind + 1 | 0;
+            var match$29 = parse_literal(beg_ind$4, beg_ind$4, end_ind);
+            var fmt_rest$15 = match$29[0];
+            if (ign_used[0] = true, ign) {
+              pad_used = true;
+              var ignored_001$4 = opt_of_pad(/* "_" */95, pad);
+              var ignored$11 = /* Ignored_int64 */Block.__(5, [
+                  iconv$3,
+                  ignored_001$4
+                ]);
+              fmt_result = /* Fmt_EBB */[/* Ignored_param */Block.__(23, [
+                    ignored$11,
+                    fmt_rest$15
+                  ])];
+            } else {
+              pad_used = true;
+              var match$30 = make_padprec_fmt_ebb(pad, (prec_used[0] = true, prec), fmt_rest$15);
+              fmt_result = /* Fmt_EBB */[/* Int64 */Block.__(7, [
+                    iconv$3,
+                    match$30[0],
+                    match$30[1],
+                    match$30[2]
+                  ])];
+            }
+          }
+          break;
+      
+    }
+    if (exit === 1) {
+      fmt_result = Curry._3(failwith_message(/* Format */[
+                /* String_literal */Block.__(11, [
+                    "invalid format ",
+                    /* Caml_string */Block.__(3, [
+                        /* No_padding */0,
+                        /* String_literal */Block.__(11, [
+                            ": at character number ",
+                            /* Int */Block.__(4, [
+                                /* Int_d */0,
+                                /* No_padding */0,
+                                /* No_precision */0,
+                                /* String_literal */Block.__(11, [
+                                    ", invalid conversion \"",
+                                    /* Char_literal */Block.__(12, [
+                                        /* "%" */37,
+                                        /* Char */Block.__(0, [/* Char_literal */Block.__(12, [
+                                                /* "\"" */34,
+                                                /* End_of_format */0
+                                              ])])
+                                      ])
+                                  ])
+                              ])
+                          ])
+                      ])
+                  ]),
+                "invalid format %S: at character number %d, invalid conversion \"%%%c\""
+              ]), str, str_ind - 1 | 0, symb);
+    }
+    if (!legacy_behavior$1) {
+      if (!plus_used && plus) {
+        incompatible_flag(pct_ind, str_ind, symb, "'+'");
+      }
+      if (!sharp_used && sharp) {
+        incompatible_flag(pct_ind, str_ind, symb, "'#'");
+      }
+      if (!space_used && space) {
+        incompatible_flag(pct_ind, str_ind, symb, "' '");
+      }
+      if (!pad_used && Caml_obj.caml_notequal(/* Padding_EBB */[pad], /* Padding_EBB */[/* No_padding */0])) {
+        incompatible_flag(pct_ind, str_ind, symb, "`padding'");
+      }
+      if (!prec_used[0] && Caml_obj.caml_notequal(/* Precision_EBB */[prec], /* Precision_EBB */[/* No_precision */0])) {
+        incompatible_flag(pct_ind, str_ind, ign ? /* "_" */95 : symb, "`precision'");
+      }
+      if (ign && plus) {
+        incompatible_flag(pct_ind, str_ind, /* "_" */95, "'+'");
+      }
+      
+    }
+    if (!ign_used[0] && ign) {
+      var exit$4 = 0;
+      if (symb >= 38) {
+        if (symb !== 44) {
+          if (symb !== 64) {
+            exit$4 = 1;
+          } else if (!legacy_behavior$1) {
+            exit$4 = 1;
+          }
+          
+        } else if (!legacy_behavior$1) {
+          exit$4 = 1;
+        }
+        
+      } else if (symb !== 33) {
+        if (symb >= 37) {
+          if (!legacy_behavior$1) {
+            exit$4 = 1;
+          }
+          
+        } else {
+          exit$4 = 1;
+        }
+      } else if (!legacy_behavior$1) {
+        exit$4 = 1;
+      }
+      if (exit$4 === 1) {
+        incompatible_flag(pct_ind, str_ind, symb, "'_'");
+      }
+      
+    }
+    return fmt_result;
+  };
+  var parse_flags = function (pct_ind, str_ind, end_ind, ign) {
+    var zero = /* record */[/* contents */false];
+    var minus = /* record */[/* contents */false];
+    var plus = /* record */[/* contents */false];
+    var space = /* record */[/* contents */false];
+    var sharp = /* record */[/* contents */false];
+    var set_flag = function (str_ind, flag) {
+      if (flag[0] && !legacy_behavior$1) {
+        Curry._3(failwith_message(/* Format */[
+                  /* String_literal */Block.__(11, [
+                      "invalid format ",
+                      /* Caml_string */Block.__(3, [
+                          /* No_padding */0,
+                          /* String_literal */Block.__(11, [
+                              ": at character number ",
+                              /* Int */Block.__(4, [
+                                  /* Int_d */0,
+                                  /* No_padding */0,
+                                  /* No_precision */0,
+                                  /* String_literal */Block.__(11, [
+                                      ", duplicate flag ",
+                                      /* Caml_char */Block.__(1, [/* End_of_format */0])
+                                    ])
+                                ])
+                            ])
+                        ])
+                    ]),
+                  "invalid format %S: at character number %d, duplicate flag %C"
+                ]), str, str_ind, Caml_string.get(str, str_ind));
+      }
+      flag[0] = true;
+      return /* () */0;
+    };
+    var _str_ind = str_ind;
+    while(true) {
+      var str_ind$1 = _str_ind;
+      if (str_ind$1 === end_ind) {
+        invalid_format_message(end_ind, "unexpected end of format");
+      }
+      var match = Caml_string.get(str, str_ind$1);
+      var exit = 0;
+      var switcher = match - 32 | 0;
+      if (switcher > 16 || switcher < 0) {
+        exit = 1;
+      } else {
+        switch (switcher) {
+          case 0 : 
+              set_flag(str_ind$1, space);
+              _str_ind = str_ind$1 + 1 | 0;
+              continue ;
+          case 3 : 
+              set_flag(str_ind$1, sharp);
+              _str_ind = str_ind$1 + 1 | 0;
+              continue ;
+          case 11 : 
+              set_flag(str_ind$1, plus);
+              _str_ind = str_ind$1 + 1 | 0;
+              continue ;
+          case 13 : 
+              set_flag(str_ind$1, minus);
+              _str_ind = str_ind$1 + 1 | 0;
+              continue ;
+          case 1 : 
+          case 2 : 
+          case 4 : 
+          case 5 : 
+          case 6 : 
+          case 7 : 
+          case 8 : 
+          case 9 : 
+          case 10 : 
+          case 12 : 
+          case 14 : 
+          case 15 : 
+              exit = 1;
+              break;
+          case 16 : 
+              set_flag(str_ind$1, zero);
+              _str_ind = str_ind$1 + 1 | 0;
+              continue ;
+          
+        }
+      }
+      if (exit === 1) {
+        var pct_ind$1 = pct_ind;
+        var str_ind$2 = str_ind$1;
+        var end_ind$1 = end_ind;
+        var zero$1 = zero[0];
+        var minus$1 = minus[0];
+        var plus$1 = plus[0];
+        var sharp$1 = sharp[0];
+        var space$1 = space[0];
+        var ign$1 = ign;
+        if (str_ind$2 === end_ind$1) {
+          invalid_format_message(end_ind$1, "unexpected end of format");
+        }
+        var padty = zero$1 ? (
+            minus$1 ? (
+                legacy_behavior$1 ? /* Left */0 : incompatible_flag(pct_ind$1, str_ind$2, /* "-" */45, "0")
+              ) : /* Zeros */2
+          ) : (
+            minus$1 ? /* Left */0 : /* Right */1
+          );
+        var match$1 = Caml_string.get(str, str_ind$2);
+        var exit$1 = 0;
+        if (match$1 >= 48) {
+          if (match$1 >= 58) {
+            exit$1 = 1;
+          } else {
+            var match$2 = parse_positive(str_ind$2, end_ind$1, 0);
+            return parse_after_padding(pct_ind$1, match$2[0], end_ind$1, minus$1, plus$1, sharp$1, space$1, ign$1, /* Lit_padding */Block.__(0, [
+                          padty,
+                          match$2[1]
+                        ]));
+          }
+        } else if (match$1 !== 42) {
+          exit$1 = 1;
+        } else {
+          return parse_after_padding(pct_ind$1, str_ind$2 + 1 | 0, end_ind$1, minus$1, plus$1, sharp$1, space$1, ign$1, /* Arg_padding */Block.__(1, [padty]));
+        }
+        if (exit$1 === 1) {
+          switch (padty) {
+            case 0 : 
+                if (!legacy_behavior$1) {
+                  invalid_format_without(str_ind$2 - 1 | 0, /* "-" */45, "padding");
+                }
+                return parse_after_padding(pct_ind$1, str_ind$2, end_ind$1, minus$1, plus$1, sharp$1, space$1, ign$1, /* No_padding */0);
+            case 1 : 
+                return parse_after_padding(pct_ind$1, str_ind$2, end_ind$1, minus$1, plus$1, sharp$1, space$1, ign$1, /* No_padding */0);
+            case 2 : 
+                return parse_after_padding(pct_ind$1, str_ind$2, end_ind$1, minus$1, plus$1, sharp$1, space$1, ign$1, /* Lit_padding */Block.__(0, [
+                              /* Right */1,
+                              0
+                            ]));
+            
+          }
+        }
+        
+      }
+      
+    };
+  };
+  var is_int_base = function (symb) {
+    var switcher = symb - 88 | 0;
+    if (switcher > 32 || switcher < 0) {
+      return false;
+    } else {
+      switch (switcher) {
+        case 1 : 
+        case 2 : 
+        case 3 : 
+        case 4 : 
+        case 5 : 
+        case 6 : 
+        case 7 : 
+        case 8 : 
+        case 9 : 
+        case 10 : 
+        case 11 : 
+        case 13 : 
+        case 14 : 
+        case 15 : 
+        case 16 : 
+        case 18 : 
+        case 19 : 
+        case 20 : 
+        case 21 : 
+        case 22 : 
+        case 24 : 
+        case 25 : 
+        case 26 : 
+        case 27 : 
+        case 28 : 
+        case 30 : 
+        case 31 : 
+            return false;
+        case 0 : 
+        case 12 : 
+        case 17 : 
+        case 23 : 
+        case 29 : 
+        case 32 : 
+            return true;
+        
+      }
+    }
+  };
+  var counter_of_char = function (symb) {
+    var exit = 0;
+    if (symb >= 108) {
+      if (symb >= 111) {
+        exit = 1;
+      } else {
+        switch (symb - 108 | 0) {
+          case 0 : 
+              return /* Line_counter */0;
+          case 1 : 
+              exit = 1;
+              break;
+          case 2 : 
+              return /* Char_counter */1;
+          
+        }
+      }
+    } else if (symb !== 76) {
+      exit = 1;
+    } else {
+      return /* Token_counter */2;
+    }
+    if (exit === 1) {
+      throw [
+            Caml_builtin_exceptions.assert_failure,
+            /* tuple */[
+              "camlinternalFormat.ml",
+              2686,
+              34
+            ]
+          ];
+    }
+    
+  };
+  var parse_char_set = function (str_ind, end_ind) {
+    if (str_ind === end_ind) {
+      invalid_format_message(end_ind, "unexpected end of format");
+    }
+    var char_set = Bytes.make(32, /* "\000" */0);
+    var add_range = function (c, c$prime) {
+      for(var i = c; i <= c$prime; ++i){
+        add_in_char_set(char_set, Pervasives.char_of_int(i));
+      }
+      return /* () */0;
+    };
+    var fail_single_percent = function (str_ind) {
+      return Curry._2(failwith_message(/* Format */[
+                      /* String_literal */Block.__(11, [
+                          "invalid format ",
+                          /* Caml_string */Block.__(3, [
+                              /* No_padding */0,
+                              /* String_literal */Block.__(11, [
+                                  ": '",
+                                  /* Char_literal */Block.__(12, [
+                                      /* "%" */37,
+                                      /* String_literal */Block.__(11, [
+                                          "' alone is not accepted in character sets, use ",
+                                          /* Char_literal */Block.__(12, [
+                                              /* "%" */37,
+                                              /* Char_literal */Block.__(12, [
+                                                  /* "%" */37,
+                                                  /* String_literal */Block.__(11, [
+                                                      " instead at position ",
+                                                      /* Int */Block.__(4, [
+                                                          /* Int_d */0,
+                                                          /* No_padding */0,
+                                                          /* No_precision */0,
+                                                          /* Char_literal */Block.__(12, [
+                                                              /* "." */46,
+                                                              /* End_of_format */0
+                                                            ])
+                                                        ])
+                                                    ])
+                                                ])
+                                            ])
+                                        ])
+                                    ])
+                                ])
+                            ])
+                        ]),
+                      "invalid format %S: '%%' alone is not accepted in character sets, use %%%% instead at position %d."
+                    ]), str, str_ind);
+    };
+    var parse_char_set_after_char = function (_str_ind, end_ind, _c) {
+      while(true) {
+        var c = _c;
+        var str_ind = _str_ind;
+        if (str_ind === end_ind) {
+          invalid_format_message(end_ind, "unexpected end of format");
+        }
+        var c$prime = Caml_string.get(str, str_ind);
+        var exit = 0;
+        var exit$1 = 0;
+        if (c$prime >= 46) {
+          if (c$prime !== 64) {
+            if (c$prime !== 93) {
+              exit = 1;
+            } else {
+              add_in_char_set(char_set, c);
+              return str_ind + 1 | 0;
+            }
+          } else {
+            exit$1 = 2;
+          }
+        } else if (c$prime !== 37) {
+          if (c$prime >= 45) {
+            var str_ind$1 = str_ind + 1 | 0;
+            var end_ind$1 = end_ind;
+            var c$1 = c;
+            if (str_ind$1 === end_ind$1) {
+              invalid_format_message(end_ind$1, "unexpected end of format");
+            }
+            var c$prime$1 = Caml_string.get(str, str_ind$1);
+            if (c$prime$1 !== 37) {
+              if (c$prime$1 !== 93) {
+                add_range(c$1, c$prime$1);
+                return parse_char_set_content(str_ind$1 + 1 | 0, end_ind$1);
+              } else {
+                add_in_char_set(char_set, c$1);
+                add_in_char_set(char_set, /* "-" */45);
+                return str_ind$1 + 1 | 0;
+              }
+            } else {
+              if ((str_ind$1 + 1 | 0) === end_ind$1) {
+                invalid_format_message(end_ind$1, "unexpected end of format");
+              }
+              var c$prime$2 = Caml_string.get(str, str_ind$1 + 1 | 0);
+              var exit$2 = 0;
+              if (c$prime$2 !== 37 && c$prime$2 !== 64) {
+                return fail_single_percent(str_ind$1);
+              } else {
+                exit$2 = 1;
+              }
+              if (exit$2 === 1) {
+                add_range(c$1, c$prime$2);
+                return parse_char_set_content(str_ind$1 + 2 | 0, end_ind$1);
+              }
+              
+            }
+          } else {
+            exit = 1;
+          }
+        } else {
+          exit$1 = 2;
+        }
+        if (exit$1 === 2) {
+          if (c === /* "%" */37) {
+            add_in_char_set(char_set, c$prime);
+            return parse_char_set_content(str_ind + 1 | 0, end_ind);
+          } else {
+            exit = 1;
+          }
+        }
+        if (exit === 1) {
+          if (c === /* "%" */37) {
+            fail_single_percent(str_ind);
+          }
+          add_in_char_set(char_set, c);
+          _c = c$prime;
+          _str_ind = str_ind + 1 | 0;
+          continue ;
+        }
+        
+      };
+    };
+    var parse_char_set_content = function (_str_ind, end_ind) {
+      while(true) {
+        var str_ind = _str_ind;
+        if (str_ind === end_ind) {
+          invalid_format_message(end_ind, "unexpected end of format");
+        }
+        var c = Caml_string.get(str, str_ind);
+        if (c !== 45) {
+          if (c !== 93) {
+            return parse_char_set_after_char(str_ind + 1 | 0, end_ind, c);
+          } else {
+            return str_ind + 1 | 0;
+          }
+        } else {
+          add_in_char_set(char_set, /* "-" */45);
+          _str_ind = str_ind + 1 | 0;
+          continue ;
+        }
+      };
+    };
+    var parse_char_set_start = function (str_ind, end_ind) {
+      if (str_ind === end_ind) {
+        invalid_format_message(end_ind, "unexpected end of format");
+      }
+      var c = Caml_string.get(str, str_ind);
+      return parse_char_set_after_char(str_ind + 1 | 0, end_ind, c);
+    };
+    if (str_ind === end_ind) {
+      invalid_format_message(end_ind, "unexpected end of format");
+    }
+    var match = Caml_string.get(str, str_ind);
+    var match$1 = match !== 94 ? /* tuple */[
+        str_ind,
+        false
+      ] : /* tuple */[
+        str_ind + 1 | 0,
+        true
+      ];
+    var next_ind = parse_char_set_start(match$1[0], end_ind);
+    var char_set$1 = Bytes.to_string(char_set);
+    return /* tuple */[
+            next_ind,
+            match$1[1] ? rev_char_set(char_set$1) : char_set$1
+          ];
+  };
+  var check_open_box = function (fmt) {
+    if (typeof fmt === "number" || !(fmt.tag === 11 && typeof fmt[1] === "number")) {
+      return /* () */0;
+    } else {
+      try {
+        open_box_of_string(fmt[0]);
+        return /* () */0;
+      }
+      catch (raw_exn){
+        var exn = Js_exn.internalToOCamlException(raw_exn);
+        if (exn[0] === Caml_builtin_exceptions.failure) {
+          return /* () */0;
+        } else {
+          throw exn;
+        }
+      }
+    }
+  };
+  var parse_tag = function (is_open_tag, str_ind, end_ind) {
+    try {
+      if (str_ind === end_ind) {
+        throw Caml_builtin_exceptions.not_found;
+      }
+      var match = Caml_string.get(str, str_ind);
+      if (match !== 60) {
+        throw Caml_builtin_exceptions.not_found;
+      } else {
+        var ind = $$String.index_from(str, str_ind + 1 | 0, /* ">" */62);
+        if (ind >= end_ind) {
+          throw Caml_builtin_exceptions.not_found;
+        }
+        var sub_str = $$String.sub(str, str_ind, (ind - str_ind | 0) + 1 | 0);
+        var beg_ind = ind + 1 | 0;
+        var match$1 = parse_literal(beg_ind, beg_ind, end_ind);
+        var match$2 = parse_literal(str_ind, str_ind, ind + 1 | 0);
+        var sub_fmt = match$2[0];
+        var sub_format = /* Format */[
+          sub_fmt,
+          sub_str
+        ];
+        var formatting = is_open_tag ? /* Open_tag */Block.__(0, [sub_format]) : (check_open_box(sub_fmt), /* Open_box */Block.__(1, [sub_format]));
+        return /* Fmt_EBB */[/* Formatting_gen */Block.__(18, [
+                    formatting,
+                    match$1[0]
+                  ])];
+      }
+    }
+    catch (exn){
+      if (exn === Caml_builtin_exceptions.not_found) {
+        var match$3 = parse_literal(str_ind, str_ind, end_ind);
+        var sub_format$1 = /* Format */[
+          /* End_of_format */0,
+          ""
+        ];
+        var formatting$1 = is_open_tag ? /* Open_tag */Block.__(0, [sub_format$1]) : /* Open_box */Block.__(1, [sub_format$1]);
+        return /* Fmt_EBB */[/* Formatting_gen */Block.__(18, [
+                    formatting$1,
+                    match$3[0]
+                  ])];
+      } else {
+        throw exn;
+      }
+    }
+  };
+  return parse_literal(0, 0, str.length);
+}
+
+function format_of_string_fmtty(str, fmtty) {
+  var match = fmt_ebb_of_string(undefined, str);
+  try {
+    return /* Format */[
+            type_format(match[0], fmtty),
+            str
+          ];
+  }
+  catch (exn){
+    if (exn === Type_mismatch) {
+      return Curry._2(failwith_message(/* Format */[
+                      /* String_literal */Block.__(11, [
+                          "bad input: format type mismatch between ",
+                          /* Caml_string */Block.__(3, [
+                              /* No_padding */0,
+                              /* String_literal */Block.__(11, [
+                                  " and ",
+                                  /* Caml_string */Block.__(3, [
+                                      /* No_padding */0,
+                                      /* End_of_format */0
+                                    ])
+                                ])
+                            ])
+                        ]),
+                      "bad input: format type mismatch between %S and %S"
+                    ]), str, string_of_fmtty(fmtty));
+    } else {
+      throw exn;
+    }
+  }
+}
+
+function format_of_string_format(str, param) {
+  var match = fmt_ebb_of_string(undefined, str);
+  try {
+    return /* Format */[
+            type_format(match[0], fmtty_of_fmt(param[0])),
+            str
+          ];
+  }
+  catch (exn){
+    if (exn === Type_mismatch) {
+      return Curry._2(failwith_message(/* Format */[
+                      /* String_literal */Block.__(11, [
+                          "bad input: format type mismatch between ",
+                          /* Caml_string */Block.__(3, [
+                              /* No_padding */0,
+                              /* String_literal */Block.__(11, [
+                                  " and ",
+                                  /* Caml_string */Block.__(3, [
+                                      /* No_padding */0,
+                                      /* End_of_format */0
+                                    ])
+                                ])
+                            ])
+                        ]),
+                      "bad input: format type mismatch between %S and %S"
+                    ]), str, param[1]);
+    } else {
+      throw exn;
+    }
+  }
+}
+
+exports.is_in_char_set = is_in_char_set;
+exports.rev_char_set = rev_char_set;
+exports.create_char_set = create_char_set;
+exports.add_in_char_set = add_in_char_set;
+exports.freeze_char_set = freeze_char_set;
+exports.param_format_of_ignored_format = param_format_of_ignored_format;
+exports.make_printf = make_printf;
+exports.output_acc = output_acc;
+exports.bufput_acc = bufput_acc;
+exports.strput_acc = strput_acc;
+exports.type_format = type_format;
+exports.fmt_ebb_of_string = fmt_ebb_of_string;
+exports.format_of_string_fmtty = format_of_string_fmtty;
+exports.format_of_string_format = format_of_string_format;
+exports.char_of_iconv = char_of_iconv;
+exports.string_of_formatting_lit = string_of_formatting_lit;
+exports.string_of_formatting_gen = string_of_formatting_gen;
+exports.string_of_fmtty = string_of_fmtty;
+exports.string_of_fmt = string_of_fmt;
+exports.open_box_of_string = open_box_of_string;
+exports.symm = symm;
+exports.trans = trans;
+exports.recast = recast;
+/* No side effect */
+
+},{"./char.js":"../node_modules/bs-platform/lib/js/char.js","./block.js":"../node_modules/bs-platform/lib/js/block.js","./bytes.js":"../node_modules/bs-platform/lib/js/bytes.js","./curry.js":"../node_modules/bs-platform/lib/js/curry.js","./buffer.js":"../node_modules/bs-platform/lib/js/buffer.js","./js_exn.js":"../node_modules/bs-platform/lib/js/js_exn.js","./string.js":"../node_modules/bs-platform/lib/js/string.js","./caml_io.js":"../node_modules/bs-platform/lib/js/caml_io.js","./caml_obj.js":"../node_modules/bs-platform/lib/js/caml_obj.js","./caml_bytes.js":"../node_modules/bs-platform/lib/js/caml_bytes.js","./caml_float.js":"../node_modules/bs-platform/lib/js/caml_float.js","./caml_int32.js":"../node_modules/bs-platform/lib/js/caml_int32.js","./pervasives.js":"../node_modules/bs-platform/lib/js/pervasives.js","./caml_format.js":"../node_modules/bs-platform/lib/js/caml_format.js","./caml_string.js":"../node_modules/bs-platform/lib/js/caml_string.js","./caml_primitive.js":"../node_modules/bs-platform/lib/js/caml_primitive.js","./caml_exceptions.js":"../node_modules/bs-platform/lib/js/caml_exceptions.js","./caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js","./camlinternalFormatBasics.js":"../node_modules/bs-platform/lib/js/camlinternalFormatBasics.js"}],"../node_modules/bs-platform/lib/js/format.js":[function(require,module,exports) {
+'use strict';
+
+var Block = require("./block.js");
+var Bytes = require("./bytes.js");
+var Curry = require("./curry.js");
+var $$Buffer = require("./buffer.js");
+var $$String = require("./string.js");
+var Caml_io = require("./caml_io.js");
+var Caml_obj = require("./caml_obj.js");
+var Pervasives = require("./pervasives.js");
+var Caml_string = require("./caml_string.js");
+var Caml_primitive = require("./caml_primitive.js");
+var Caml_exceptions = require("./caml_exceptions.js");
+var CamlinternalFormat = require("./camlinternalFormat.js");
+var Caml_builtin_exceptions = require("./caml_builtin_exceptions.js");
+
+function add_queue(x, q) {
+  var c = /* Cons */[/* record */[
+      /* head */x,
+      /* tail : Nil */0
+    ]];
+  var match = q[/* insert */0];
+  if (match) {
+    q[/* insert */0] = c;
+    match[0][/* tail */1] = c;
+    return /* () */0;
+  } else {
+    q[/* insert */0] = c;
+    q[/* body */1] = c;
+    return /* () */0;
+  }
+}
+
+var Empty_queue = Caml_exceptions.create("Format.Empty_queue");
+
+function peek_queue(param) {
+  var match = param[/* body */1];
+  if (match) {
+    return match[0][/* head */0];
+  } else {
+    throw Empty_queue;
+  }
+}
+
+function take_queue(q) {
+  var match = q[/* body */1];
+  if (match) {
+    var match$1 = match[0];
+    var x = match$1[/* head */0];
+    var tl = match$1[/* tail */1];
+    q[/* body */1] = tl;
+    if (tl === /* Nil */0) {
+      q[/* insert */0] = /* Nil */0;
+    }
+    return x;
+  } else {
+    throw Empty_queue;
+  }
+}
+
+function pp_enqueue(state, token) {
+  state[/* pp_right_total */12] = state[/* pp_right_total */12] + token[/* length */2] | 0;
+  return add_queue(token, state[/* pp_queue */26]);
+}
+
+function pp_clear_queue(state) {
+  state[/* pp_left_total */11] = 1;
+  state[/* pp_right_total */12] = 1;
+  var q = state[/* pp_queue */26];
+  q[/* insert */0] = /* Nil */0;
+  q[/* body */1] = /* Nil */0;
+  return /* () */0;
+}
+
+function pp_output_string(state, s) {
+  return Curry._3(state[/* pp_out_string */16], s, 0, s.length);
+}
+
+function break_new_line(state, offset, width) {
+  Curry._1(state[/* pp_out_newline */18], /* () */0);
+  state[/* pp_is_new_line */10] = true;
+  var indent = (state[/* pp_margin */5] - width | 0) + offset | 0;
+  var real_indent = Caml_primitive.caml_int_min(state[/* pp_max_indent */7], indent);
+  state[/* pp_current_indent */9] = real_indent;
+  state[/* pp_space_left */8] = state[/* pp_margin */5] - state[/* pp_current_indent */9] | 0;
+  return Curry._1(state[/* pp_out_spaces */19], state[/* pp_current_indent */9]);
+}
+
+function break_same_line(state, width) {
+  state[/* pp_space_left */8] = state[/* pp_space_left */8] - width | 0;
+  return Curry._1(state[/* pp_out_spaces */19], width);
+}
+
+function pp_force_break_line(state) {
+  var match = state[/* pp_format_stack */1];
+  if (match) {
+    var match$1 = match[0];
+    var width = match$1[1];
+    if (width > state[/* pp_space_left */8] && (match$1[0] - 1 >>> 0) <= 3) {
+      return break_new_line(state, 0, width);
+    } else {
+      return 0;
+    }
+  } else {
+    return Curry._1(state[/* pp_out_newline */18], /* () */0);
+  }
+}
+
+function format_pp_token(state, size, param) {
+  if (typeof param === "number") {
+    switch (param) {
+      case 0 : 
+          var match = state[/* pp_tbox_stack */2];
+          if (match) {
+            var tabs = match[0][0];
+            var add_tab = function (n, ls) {
+              if (ls) {
+                var x = ls[0];
+                if (Caml_obj.caml_lessthan(n, x)) {
+                  return /* :: */[
+                          n,
+                          ls
+                        ];
+                } else {
+                  return /* :: */[
+                          x,
+                          add_tab(n, ls[1])
+                        ];
+                }
+              } else {
+                return /* :: */[
+                        n,
+                        /* [] */0
+                      ];
+              }
+            };
+            tabs[0] = add_tab(state[/* pp_margin */5] - state[/* pp_space_left */8] | 0, tabs[0]);
+            return /* () */0;
+          } else {
+            return /* () */0;
+          }
+      case 1 : 
+          var match$1 = state[/* pp_format_stack */1];
+          if (match$1) {
+            state[/* pp_format_stack */1] = match$1[1];
+            return /* () */0;
+          } else {
+            return /* () */0;
+          }
+      case 2 : 
+          var match$2 = state[/* pp_tbox_stack */2];
+          if (match$2) {
+            state[/* pp_tbox_stack */2] = match$2[1];
+            return /* () */0;
+          } else {
+            return /* () */0;
+          }
+      case 3 : 
+          var match$3 = state[/* pp_format_stack */1];
+          if (match$3) {
+            return break_new_line(state, 0, match$3[0][1]);
+          } else {
+            return Curry._1(state[/* pp_out_newline */18], /* () */0);
+          }
+      case 4 : 
+          if (state[/* pp_current_indent */9] !== (state[/* pp_margin */5] - state[/* pp_space_left */8] | 0)) {
+            var state$1 = state;
+            var match$4 = take_queue(state$1[/* pp_queue */26]);
+            var size$1 = match$4[/* elem_size */0];
+            state$1[/* pp_left_total */11] = state$1[/* pp_left_total */11] - match$4[/* length */2] | 0;
+            state$1[/* pp_space_left */8] = state$1[/* pp_space_left */8] + size$1 | 0;
+            return /* () */0;
+          } else {
+            return 0;
+          }
+      case 5 : 
+          var match$5 = state[/* pp_mark_stack */4];
+          if (match$5) {
+            var marker = Curry._1(state[/* pp_mark_close_tag */23], match$5[0]);
+            pp_output_string(state, marker);
+            state[/* pp_mark_stack */4] = match$5[1];
+            return /* () */0;
+          } else {
+            return /* () */0;
+          }
+      
+    }
+  } else {
+    switch (param.tag | 0) {
+      case 0 : 
+          state[/* pp_space_left */8] = state[/* pp_space_left */8] - size | 0;
+          pp_output_string(state, param[0]);
+          state[/* pp_is_new_line */10] = false;
+          return /* () */0;
+      case 1 : 
+          var off = param[1];
+          var n = param[0];
+          var match$6 = state[/* pp_format_stack */1];
+          if (match$6) {
+            var match$7 = match$6[0];
+            var width = match$7[1];
+            switch (match$7[0]) {
+              case 1 : 
+              case 2 : 
+                  return break_new_line(state, off, width);
+              case 3 : 
+                  if (size > state[/* pp_space_left */8]) {
+                    return break_new_line(state, off, width);
+                  } else {
+                    return break_same_line(state, n);
+                  }
+              case 4 : 
+                  if (state[/* pp_is_new_line */10] || !(size > state[/* pp_space_left */8] || state[/* pp_current_indent */9] > ((state[/* pp_margin */5] - width | 0) + off | 0))) {
+                    return break_same_line(state, n);
+                  } else {
+                    return break_new_line(state, off, width);
+                  }
+              case 0 : 
+              case 5 : 
+                  return break_same_line(state, n);
+              
+            }
+          } else {
+            return /* () */0;
+          }
+      case 2 : 
+          var insertion_point = state[/* pp_margin */5] - state[/* pp_space_left */8] | 0;
+          var match$8 = state[/* pp_tbox_stack */2];
+          if (match$8) {
+            var tabs$1 = match$8[0][0];
+            var find = function (n, _param) {
+              while(true) {
+                var param = _param;
+                if (param) {
+                  var x = param[0];
+                  if (Caml_obj.caml_greaterequal(x, n)) {
+                    return x;
+                  } else {
+                    _param = param[1];
+                    continue ;
+                  }
+                } else {
+                  throw Caml_builtin_exceptions.not_found;
+                }
+              };
+            };
+            var match$9 = tabs$1[0];
+            var tab;
+            if (match$9) {
+              try {
+                tab = find(insertion_point, tabs$1[0]);
+              }
+              catch (exn){
+                if (exn === Caml_builtin_exceptions.not_found) {
+                  tab = match$9[0];
+                } else {
+                  throw exn;
+                }
+              }
+            } else {
+              tab = insertion_point;
+            }
+            var offset = tab - insertion_point | 0;
+            if (offset >= 0) {
+              return break_same_line(state, offset + param[0] | 0);
+            } else {
+              return break_new_line(state, tab + param[1] | 0, state[/* pp_margin */5]);
+            }
+          } else {
+            return /* () */0;
+          }
+      case 3 : 
+          var ty = param[1];
+          var insertion_point$1 = state[/* pp_margin */5] - state[/* pp_space_left */8] | 0;
+          if (insertion_point$1 > state[/* pp_max_indent */7]) {
+            pp_force_break_line(state);
+          }
+          var offset$1 = state[/* pp_space_left */8] - param[0] | 0;
+          var bl_type = ty !== 1 ? (
+              size > state[/* pp_space_left */8] ? ty : /* Pp_fits */5
+            ) : /* Pp_vbox */1;
+          state[/* pp_format_stack */1] = /* :: */[
+            /* Format_elem */[
+              bl_type,
+              offset$1
+            ],
+            state[/* pp_format_stack */1]
+          ];
+          return /* () */0;
+      case 4 : 
+          state[/* pp_tbox_stack */2] = /* :: */[
+            param[0],
+            state[/* pp_tbox_stack */2]
+          ];
+          return /* () */0;
+      case 5 : 
+          var tag_name = param[0];
+          var marker$1 = Curry._1(state[/* pp_mark_open_tag */22], tag_name);
+          pp_output_string(state, marker$1);
+          state[/* pp_mark_stack */4] = /* :: */[
+            tag_name,
+            state[/* pp_mark_stack */4]
+          ];
+          return /* () */0;
+      
+    }
+  }
+}
+
+function advance_left(state) {
+  try {
+    var state$1 = state;
+    while(true) {
+      var match = peek_queue(state$1[/* pp_queue */26]);
+      var size = match[/* elem_size */0];
+      if (size < 0 && (state$1[/* pp_right_total */12] - state$1[/* pp_left_total */11] | 0) < state$1[/* pp_space_left */8]) {
+        return 0;
+      } else {
+        take_queue(state$1[/* pp_queue */26]);
+        format_pp_token(state$1, size < 0 ? 1000000010 : size, match[/* token */1]);
+        state$1[/* pp_left_total */11] = match[/* length */2] + state$1[/* pp_left_total */11] | 0;
+        continue ;
+      }
+    };
+  }
+  catch (exn){
+    if (exn === Empty_queue) {
+      return /* () */0;
+    } else {
+      throw exn;
+    }
+  }
+}
+
+function enqueue_advance(state, tok) {
+  pp_enqueue(state, tok);
+  return advance_left(state);
+}
+
+function enqueue_string_as(state, size, s) {
+  return enqueue_advance(state, /* record */[
+              /* elem_size */size,
+              /* token : Pp_text */Block.__(0, [s]),
+              /* length */size
+            ]);
+}
+
+var q_elem = /* record */[
+  /* elem_size */-1,
+  /* token : Pp_text */Block.__(0, [""]),
+  /* length */0
+];
+
+var scan_stack_bottom_000 = /* Scan_elem */[
+  -1,
+  q_elem
+];
+
+var scan_stack_bottom = /* :: */[
+  scan_stack_bottom_000,
+  /* [] */0
+];
+
+function set_size(state, ty) {
+  var match = state[/* pp_scan_stack */0];
+  if (match) {
+    var match$1 = match[0];
+    var queue_elem = match$1[1];
+    var size = queue_elem[/* elem_size */0];
+    var t = match[1];
+    if (match$1[0] < state[/* pp_left_total */11]) {
+      state[/* pp_scan_stack */0] = scan_stack_bottom;
+      return /* () */0;
+    } else {
+      var exit = 0;
+      var tmp = queue_elem[/* token */1];
+      if (typeof tmp === "number") {
+        return /* () */0;
+      } else {
+        switch (tmp.tag | 0) {
+          case 1 : 
+          case 2 : 
+              exit = 1;
+              break;
+          case 3 : 
+              if (ty) {
+                return 0;
+              } else {
+                queue_elem[/* elem_size */0] = state[/* pp_right_total */12] + size | 0;
+                state[/* pp_scan_stack */0] = t;
+                return /* () */0;
+              }
+          default:
+            return /* () */0;
+        }
+      }
+      if (exit === 1) {
+        if (ty) {
+          queue_elem[/* elem_size */0] = state[/* pp_right_total */12] + size | 0;
+          state[/* pp_scan_stack */0] = t;
+          return /* () */0;
+        } else {
+          return 0;
+        }
+      }
+      
+    }
+  } else {
+    return /* () */0;
+  }
+}
+
+function scan_push(state, b, tok) {
+  pp_enqueue(state, tok);
+  if (b) {
+    set_size(state, true);
+  }
+  state[/* pp_scan_stack */0] = /* :: */[
+    /* Scan_elem */[
+      state[/* pp_right_total */12],
+      tok
+    ],
+    state[/* pp_scan_stack */0]
+  ];
+  return /* () */0;
+}
+
+function pp_open_box_gen(state, indent, br_ty) {
+  state[/* pp_curr_depth */13] = state[/* pp_curr_depth */13] + 1 | 0;
+  if (state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+    var elem = /* record */[
+      /* elem_size */-state[/* pp_right_total */12] | 0,
+      /* token : Pp_begin */Block.__(3, [
+          indent,
+          br_ty
+        ]),
+      /* length */0
+    ];
+    return scan_push(state, false, elem);
+  } else if (state[/* pp_curr_depth */13] === state[/* pp_max_boxes */14]) {
+    var state$1 = state;
+    var s = state[/* pp_ellipsis */15];
+    var len = s.length;
+    return enqueue_string_as(state$1, len, s);
+  } else {
+    return 0;
+  }
+}
+
+function pp_close_box(state, _) {
+  if (state[/* pp_curr_depth */13] > 1) {
+    if (state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+      pp_enqueue(state, /* record */[
+            /* elem_size */0,
+            /* token : Pp_end */1,
+            /* length */0
+          ]);
+      set_size(state, true);
+      set_size(state, false);
+    }
+    state[/* pp_curr_depth */13] = state[/* pp_curr_depth */13] - 1 | 0;
+    return /* () */0;
+  } else {
+    return 0;
+  }
+}
+
+function pp_open_tag(state, tag_name) {
+  if (state[/* pp_print_tags */20]) {
+    state[/* pp_tag_stack */3] = /* :: */[
+      tag_name,
+      state[/* pp_tag_stack */3]
+    ];
+    Curry._1(state[/* pp_print_open_tag */24], tag_name);
+  }
+  if (state[/* pp_mark_tags */21]) {
+    return pp_enqueue(state, /* record */[
+                /* elem_size */0,
+                /* token : Pp_open_tag */Block.__(5, [tag_name]),
+                /* length */0
+              ]);
+  } else {
+    return 0;
+  }
+}
+
+function pp_close_tag(state, _) {
+  if (state[/* pp_mark_tags */21]) {
+    pp_enqueue(state, /* record */[
+          /* elem_size */0,
+          /* token : Pp_close_tag */5,
+          /* length */0
+        ]);
+  }
+  if (state[/* pp_print_tags */20]) {
+    var match = state[/* pp_tag_stack */3];
+    if (match) {
+      Curry._1(state[/* pp_print_close_tag */25], match[0]);
+      state[/* pp_tag_stack */3] = match[1];
+      return /* () */0;
+    } else {
+      return /* () */0;
+    }
+  } else {
+    return 0;
+  }
+}
+
+function pp_set_print_tags(state, b) {
+  state[/* pp_print_tags */20] = b;
+  return /* () */0;
+}
+
+function pp_set_mark_tags(state, b) {
+  state[/* pp_mark_tags */21] = b;
+  return /* () */0;
+}
+
+function pp_get_print_tags(state, _) {
+  return state[/* pp_print_tags */20];
+}
+
+function pp_get_mark_tags(state, _) {
+  return state[/* pp_mark_tags */21];
+}
+
+function pp_set_tags(state, b) {
+  state[/* pp_print_tags */20] = b;
+  state[/* pp_mark_tags */21] = b;
+  return /* () */0;
+}
+
+function pp_get_formatter_tag_functions(state, _) {
+  return /* record */[
+          /* mark_open_tag */state[/* pp_mark_open_tag */22],
+          /* mark_close_tag */state[/* pp_mark_close_tag */23],
+          /* print_open_tag */state[/* pp_print_open_tag */24],
+          /* print_close_tag */state[/* pp_print_close_tag */25]
+        ];
+}
+
+function pp_set_formatter_tag_functions(state, param) {
+  state[/* pp_mark_open_tag */22] = param[/* mark_open_tag */0];
+  state[/* pp_mark_close_tag */23] = param[/* mark_close_tag */1];
+  state[/* pp_print_open_tag */24] = param[/* print_open_tag */2];
+  state[/* pp_print_close_tag */25] = param[/* print_close_tag */3];
+  return /* () */0;
+}
+
+function pp_rinit(state) {
+  pp_clear_queue(state);
+  state[/* pp_scan_stack */0] = scan_stack_bottom;
+  state[/* pp_format_stack */1] = /* [] */0;
+  state[/* pp_tbox_stack */2] = /* [] */0;
+  state[/* pp_tag_stack */3] = /* [] */0;
+  state[/* pp_mark_stack */4] = /* [] */0;
+  state[/* pp_current_indent */9] = 0;
+  state[/* pp_curr_depth */13] = 0;
+  state[/* pp_space_left */8] = state[/* pp_margin */5];
+  return pp_open_box_gen(state, 0, /* Pp_hovbox */3);
+}
+
+function pp_flush_queue(state, b) {
+  while(state[/* pp_curr_depth */13] > 1) {
+    pp_close_box(state, /* () */0);
+  };
+  state[/* pp_right_total */12] = 1000000010;
+  advance_left(state);
+  if (b) {
+    Curry._1(state[/* pp_out_newline */18], /* () */0);
+  }
+  return pp_rinit(state);
+}
+
+function pp_print_as_size(state, size, s) {
+  if (state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+    return enqueue_string_as(state, size, s);
+  } else {
+    return 0;
+  }
+}
+
+var pp_print_as = pp_print_as_size;
+
+function pp_print_string(state, s) {
+  return pp_print_as(state, s.length, s);
+}
+
+function pp_print_int(state, i) {
+  return pp_print_string(state, String(i));
+}
+
+function pp_print_float(state, f) {
+  return pp_print_string(state, Pervasives.string_of_float(f));
+}
+
+function pp_print_bool(state, b) {
+  return pp_print_string(state, b ? "true" : "false");
+}
+
+function pp_print_char(state, c) {
+  return pp_print_as(state, 1, Caml_string.bytes_to_string(Bytes.make(1, c)));
+}
+
+function pp_open_hbox(state, _) {
+  return pp_open_box_gen(state, 0, /* Pp_hbox */0);
+}
+
+function pp_open_vbox(state, indent) {
+  return pp_open_box_gen(state, indent, /* Pp_vbox */1);
+}
+
+function pp_open_hvbox(state, indent) {
+  return pp_open_box_gen(state, indent, /* Pp_hvbox */2);
+}
+
+function pp_open_hovbox(state, indent) {
+  return pp_open_box_gen(state, indent, /* Pp_hovbox */3);
+}
+
+function pp_open_box(state, indent) {
+  return pp_open_box_gen(state, indent, /* Pp_box */4);
+}
+
+function pp_print_newline(state, _) {
+  pp_flush_queue(state, true);
+  return Curry._1(state[/* pp_out_flush */17], /* () */0);
+}
+
+function pp_print_flush(state, _) {
+  pp_flush_queue(state, false);
+  return Curry._1(state[/* pp_out_flush */17], /* () */0);
+}
+
+function pp_force_newline(state, _) {
+  if (state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+    return enqueue_advance(state, /* record */[
+                /* elem_size */0,
+                /* token : Pp_newline */3,
+                /* length */0
+              ]);
+  } else {
+    return 0;
+  }
+}
+
+function pp_print_if_newline(state, _) {
+  if (state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+    return enqueue_advance(state, /* record */[
+                /* elem_size */0,
+                /* token : Pp_if_newline */4,
+                /* length */0
+              ]);
+  } else {
+    return 0;
+  }
+}
+
+function pp_print_break(state, width, offset) {
+  if (state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+    var elem = /* record */[
+      /* elem_size */-state[/* pp_right_total */12] | 0,
+      /* token : Pp_break */Block.__(1, [
+          width,
+          offset
+        ]),
+      /* length */width
+    ];
+    return scan_push(state, true, elem);
+  } else {
+    return 0;
+  }
+}
+
+function pp_print_space(state, _) {
+  return pp_print_break(state, 1, 0);
+}
+
+function pp_print_cut(state, _) {
+  return pp_print_break(state, 0, 0);
+}
+
+function pp_open_tbox(state, _) {
+  state[/* pp_curr_depth */13] = state[/* pp_curr_depth */13] + 1 | 0;
+  if (state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+    var elem = /* record */[
+      /* elem_size */0,
+      /* token : Pp_tbegin */Block.__(4, [/* Pp_tbox */[/* record */[/* contents : [] */0]]]),
+      /* length */0
+    ];
+    return enqueue_advance(state, elem);
+  } else {
+    return 0;
+  }
+}
+
+function pp_close_tbox(state, _) {
+  if (state[/* pp_curr_depth */13] > 1 && state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+    var elem = /* record */[
+      /* elem_size */0,
+      /* token : Pp_tend */2,
+      /* length */0
+    ];
+    enqueue_advance(state, elem);
+    state[/* pp_curr_depth */13] = state[/* pp_curr_depth */13] - 1 | 0;
+    return /* () */0;
+  } else {
+    return 0;
+  }
+}
+
+function pp_print_tbreak(state, width, offset) {
+  if (state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+    var elem = /* record */[
+      /* elem_size */-state[/* pp_right_total */12] | 0,
+      /* token : Pp_tbreak */Block.__(2, [
+          width,
+          offset
+        ]),
+      /* length */width
+    ];
+    return scan_push(state, true, elem);
+  } else {
+    return 0;
+  }
+}
+
+function pp_print_tab(state, _) {
+  return pp_print_tbreak(state, 0, 0);
+}
+
+function pp_set_tab(state, _) {
+  if (state[/* pp_curr_depth */13] < state[/* pp_max_boxes */14]) {
+    var elem = /* record */[
+      /* elem_size */0,
+      /* token : Pp_stab */0,
+      /* length */0
+    ];
+    return enqueue_advance(state, elem);
+  } else {
+    return 0;
+  }
+}
+
+function pp_print_list(_$staropt$star, pp_v, ppf, _param) {
+  while(true) {
+    var param = _param;
+    var $staropt$star = _$staropt$star;
+    var pp_sep = $staropt$star !== undefined ? $staropt$star : pp_print_cut;
+    if (param) {
+      var vs = param[1];
+      var v = param[0];
+      if (vs) {
+        Curry._2(pp_v, ppf, v);
+        Curry._2(pp_sep, ppf, /* () */0);
+        _param = vs;
+        _$staropt$star = pp_sep;
+        continue ;
+      } else {
+        return Curry._2(pp_v, ppf, v);
+      }
+    } else {
+      return /* () */0;
+    }
+  };
+}
+
+function pp_print_text(ppf, s) {
+  var len = s.length;
+  var left = /* record */[/* contents */0];
+  var right = /* record */[/* contents */0];
+  var flush = function () {
+    pp_print_string(ppf, $$String.sub(s, left[0], right[0] - left[0] | 0));
+    right[0] = right[0] + 1 | 0;
+    left[0] = right[0];
+    return /* () */0;
+  };
+  while(right[0] !== len) {
+    var match = Caml_string.get(s, right[0]);
+    if (match !== 10) {
+      if (match !== 32) {
+        right[0] = right[0] + 1 | 0;
+      } else {
+        flush(/* () */0);
+        pp_print_break(ppf, 1, 0);
+      }
+    } else {
+      flush(/* () */0);
+      pp_force_newline(ppf, /* () */0);
+    }
+  };
+  if (left[0] !== len) {
+    return flush(/* () */0);
+  } else {
+    return 0;
+  }
+}
+
+function pp_set_max_boxes(state, n) {
+  if (n > 1) {
+    state[/* pp_max_boxes */14] = n;
+    return /* () */0;
+  } else {
+    return 0;
+  }
+}
+
+function pp_get_max_boxes(state, _) {
+  return state[/* pp_max_boxes */14];
+}
+
+function pp_over_max_boxes(state, _) {
+  return state[/* pp_curr_depth */13] === state[/* pp_max_boxes */14];
+}
+
+function pp_set_ellipsis_text(state, s) {
+  state[/* pp_ellipsis */15] = s;
+  return /* () */0;
+}
+
+function pp_get_ellipsis_text(state, _) {
+  return state[/* pp_ellipsis */15];
+}
+
+function pp_limit(n) {
+  if (n < 1000000010) {
+    return n;
+  } else {
+    return 1000000009;
+  }
+}
+
+function pp_set_max_indent(state, n) {
+  var state$1 = state;
+  var n$1 = state[/* pp_margin */5] - n | 0;
+  if (n$1 >= 1) {
+    var n$2 = pp_limit(n$1);
+    state$1[/* pp_min_space_left */6] = n$2;
+    state$1[/* pp_max_indent */7] = state$1[/* pp_margin */5] - state$1[/* pp_min_space_left */6] | 0;
+    return pp_rinit(state$1);
+  } else {
+    return 0;
+  }
+}
+
+function pp_get_max_indent(state, _) {
+  return state[/* pp_max_indent */7];
+}
+
+function pp_set_margin(state, n) {
+  if (n >= 1) {
+    var n$1 = pp_limit(n);
+    state[/* pp_margin */5] = n$1;
+    var new_max_indent = state[/* pp_max_indent */7] <= state[/* pp_margin */5] ? state[/* pp_max_indent */7] : Caml_primitive.caml_int_max(Caml_primitive.caml_int_max(state[/* pp_margin */5] - state[/* pp_min_space_left */6] | 0, state[/* pp_margin */5] / 2 | 0), 1);
+    return pp_set_max_indent(state, new_max_indent);
+  } else {
+    return 0;
+  }
+}
+
+function pp_get_margin(state, _) {
+  return state[/* pp_margin */5];
+}
+
+function pp_set_formatter_out_functions(state, param) {
+  state[/* pp_out_string */16] = param[/* out_string */0];
+  state[/* pp_out_flush */17] = param[/* out_flush */1];
+  state[/* pp_out_newline */18] = param[/* out_newline */2];
+  state[/* pp_out_spaces */19] = param[/* out_spaces */3];
+  return /* () */0;
+}
+
+function pp_get_formatter_out_functions(state, _) {
+  return /* record */[
+          /* out_string */state[/* pp_out_string */16],
+          /* out_flush */state[/* pp_out_flush */17],
+          /* out_newline */state[/* pp_out_newline */18],
+          /* out_spaces */state[/* pp_out_spaces */19]
+        ];
+}
+
+function pp_set_formatter_output_functions(state, f, g) {
+  state[/* pp_out_string */16] = f;
+  state[/* pp_out_flush */17] = g;
+  return /* () */0;
+}
+
+function pp_get_formatter_output_functions(state, _) {
+  return /* tuple */[
+          state[/* pp_out_string */16],
+          state[/* pp_out_flush */17]
+        ];
+}
+
+function pp_set_all_formatter_output_functions(state, f, g, h, i) {
+  pp_set_formatter_output_functions(state, f, g);
+  state[/* pp_out_newline */18] = h;
+  state[/* pp_out_spaces */19] = i;
+  return /* () */0;
+}
+
+function pp_get_all_formatter_output_functions(state, _) {
+  return /* tuple */[
+          state[/* pp_out_string */16],
+          state[/* pp_out_flush */17],
+          state[/* pp_out_newline */18],
+          state[/* pp_out_spaces */19]
+        ];
+}
+
+function display_newline(state, _) {
+  return Curry._3(state[/* pp_out_string */16], "\n", 0, 1);
+}
+
+var blank_line = Caml_string.bytes_to_string(Bytes.make(80, /* " " */32));
+
+function display_blanks(state, _n) {
+  while(true) {
+    var n = _n;
+    if (n > 0) {
+      if (n <= 80) {
+        return Curry._3(state[/* pp_out_string */16], blank_line, 0, n);
+      } else {
+        Curry._3(state[/* pp_out_string */16], blank_line, 0, 80);
+        _n = n - 80 | 0;
+        continue ;
+      }
+    } else {
+      return 0;
+    }
+  };
+}
+
+function pp_set_formatter_out_channel(state, os) {
+  state[/* pp_out_string */16] = (function (param, param$1, param$2) {
+      return Pervasives.output_substring(os, param, param$1, param$2);
+    });
+  state[/* pp_out_flush */17] = (function () {
+      return Caml_io.caml_ml_flush(os);
+    });
+  state[/* pp_out_newline */18] = (function (param) {
+      return display_newline(state, param);
+    });
+  state[/* pp_out_spaces */19] = (function (param) {
+      return display_blanks(state, param);
+    });
+  return /* () */0;
+}
+
+function default_pp_mark_open_tag(s) {
+  return "<" + (s + ">");
+}
+
+function default_pp_mark_close_tag(s) {
+  return "</" + (s + ">");
+}
+
+function default_pp_print_open_tag() {
+  return /* () */0;
+}
+
+function default_pp_print_close_tag() {
+  return /* () */0;
+}
+
+function pp_make_formatter(f, g, h, i) {
+  var pp_q = /* record */[
+    /* insert : Nil */0,
+    /* body : Nil */0
+  ];
+  var sys_tok = /* record */[
+    /* elem_size */-1,
+    /* token : Pp_begin */Block.__(3, [
+        0,
+        /* Pp_hovbox */3
+      ]),
+    /* length */0
+  ];
+  add_queue(sys_tok, pp_q);
+  var sys_scan_stack_000 = /* Scan_elem */[
+    1,
+    sys_tok
+  ];
+  var sys_scan_stack = /* :: */[
+    sys_scan_stack_000,
+    scan_stack_bottom
+  ];
+  return /* record */[
+          /* pp_scan_stack */sys_scan_stack,
+          /* pp_format_stack : [] */0,
+          /* pp_tbox_stack : [] */0,
+          /* pp_tag_stack : [] */0,
+          /* pp_mark_stack : [] */0,
+          /* pp_margin */78,
+          /* pp_min_space_left */10,
+          /* pp_max_indent */68,
+          /* pp_space_left */78,
+          /* pp_current_indent */0,
+          /* pp_is_new_line */true,
+          /* pp_left_total */1,
+          /* pp_right_total */1,
+          /* pp_curr_depth */1,
+          /* pp_max_boxes */Pervasives.max_int,
+          /* pp_ellipsis */".",
+          /* pp_out_string */f,
+          /* pp_out_flush */g,
+          /* pp_out_newline */h,
+          /* pp_out_spaces */i,
+          /* pp_print_tags */false,
+          /* pp_mark_tags */false,
+          /* pp_mark_open_tag */default_pp_mark_open_tag,
+          /* pp_mark_close_tag */default_pp_mark_close_tag,
+          /* pp_print_open_tag */default_pp_print_open_tag,
+          /* pp_print_close_tag */default_pp_print_close_tag,
+          /* pp_queue */pp_q
+        ];
+}
+
+function make_formatter(output, flush) {
+  var ppf = pp_make_formatter(output, flush, (function () {
+          return /* () */0;
+        }), (function () {
+          return /* () */0;
+        }));
+  ppf[/* pp_out_newline */18] = (function (param) {
+      return display_newline(ppf, param);
+    });
+  ppf[/* pp_out_spaces */19] = (function (param) {
+      return display_blanks(ppf, param);
+    });
+  return ppf;
+}
+
+function formatter_of_out_channel(oc) {
+  return make_formatter((function (param, param$1, param$2) {
+                return Pervasives.output_substring(oc, param, param$1, param$2);
+              }), (function () {
+                return Caml_io.caml_ml_flush(oc);
+              }));
+}
+
+function formatter_of_buffer(b) {
+  return make_formatter((function (param, param$1, param$2) {
+                return $$Buffer.add_substring(b, param, param$1, param$2);
+              }), (function () {
+                return /* () */0;
+              }));
+}
+
+var stdbuf = $$Buffer.create(512);
+
+var std_formatter = formatter_of_out_channel(Pervasives.stdout);
+
+var err_formatter = formatter_of_out_channel(Pervasives.stderr);
+
+var str_formatter = formatter_of_buffer(stdbuf);
+
+function flush_str_formatter() {
+  pp_flush_queue(str_formatter, false);
+  var s = $$Buffer.contents(stdbuf);
+  $$Buffer.reset(stdbuf);
+  return s;
+}
+
+function flush_buf_formatter(buf, ppf) {
+  pp_flush_queue(ppf, false);
+  var s = $$Buffer.contents(buf);
+  $$Buffer.reset(buf);
+  return s;
+}
+
+function open_hbox(param) {
+  return pp_open_hbox(std_formatter, param);
+}
+
+function open_vbox(param) {
+  return pp_open_vbox(std_formatter, param);
+}
+
+function open_hvbox(param) {
+  return pp_open_hvbox(std_formatter, param);
+}
+
+function open_hovbox(param) {
+  return pp_open_hovbox(std_formatter, param);
+}
+
+function open_box(param) {
+  return pp_open_box(std_formatter, param);
+}
+
+function close_box(param) {
+  return pp_close_box(std_formatter, param);
+}
+
+function open_tag(param) {
+  return pp_open_tag(std_formatter, param);
+}
+
+function close_tag(param) {
+  return pp_close_tag(std_formatter, param);
+}
+
+function print_as(param, param$1) {
+  return pp_print_as(std_formatter, param, param$1);
+}
+
+function print_string(param) {
+  return pp_print_string(std_formatter, param);
+}
+
+function print_int(param) {
+  return pp_print_string(std_formatter, String(param));
+}
+
+function print_float(param) {
+  return pp_print_string(std_formatter, Pervasives.string_of_float(param));
+}
+
+function print_char(param) {
+  return pp_print_char(std_formatter, param);
+}
+
+function print_bool(param) {
+  return pp_print_string(std_formatter, param ? "true" : "false");
+}
+
+function print_break(param, param$1) {
+  return pp_print_break(std_formatter, param, param$1);
+}
+
+function print_cut() {
+  return pp_print_break(std_formatter, 0, 0);
+}
+
+function print_space() {
+  return pp_print_break(std_formatter, 1, 0);
+}
+
+function force_newline(param) {
+  return pp_force_newline(std_formatter, param);
+}
+
+function print_flush(param) {
+  return pp_print_flush(std_formatter, param);
+}
+
+function print_newline(param) {
+  return pp_print_newline(std_formatter, param);
+}
+
+function print_if_newline(param) {
+  return pp_print_if_newline(std_formatter, param);
+}
+
+function open_tbox(param) {
+  return pp_open_tbox(std_formatter, param);
+}
+
+function close_tbox(param) {
+  return pp_close_tbox(std_formatter, param);
+}
+
+function print_tbreak(param, param$1) {
+  return pp_print_tbreak(std_formatter, param, param$1);
+}
+
+function set_tab(param) {
+  return pp_set_tab(std_formatter, param);
+}
+
+function print_tab() {
+  return pp_print_tbreak(std_formatter, 0, 0);
+}
+
+function set_margin(param) {
+  return pp_set_margin(std_formatter, param);
+}
+
+function get_margin() {
+  return std_formatter[/* pp_margin */5];
+}
+
+function set_max_indent(param) {
+  return pp_set_max_indent(std_formatter, param);
+}
+
+function get_max_indent() {
+  return std_formatter[/* pp_max_indent */7];
+}
+
+function set_max_boxes(param) {
+  return pp_set_max_boxes(std_formatter, param);
+}
+
+function get_max_boxes() {
+  return std_formatter[/* pp_max_boxes */14];
+}
+
+function over_max_boxes(param) {
+  return pp_over_max_boxes(std_formatter, param);
+}
+
+function set_ellipsis_text(param) {
+  std_formatter[/* pp_ellipsis */15] = param;
+  return /* () */0;
+}
+
+function get_ellipsis_text() {
+  return std_formatter[/* pp_ellipsis */15];
+}
+
+function set_formatter_out_channel(param) {
+  return pp_set_formatter_out_channel(std_formatter, param);
+}
+
+function set_formatter_out_functions(param) {
+  return pp_set_formatter_out_functions(std_formatter, param);
+}
+
+function get_formatter_out_functions(param) {
+  return pp_get_formatter_out_functions(std_formatter, param);
+}
+
+function set_formatter_output_functions(param, param$1) {
+  return pp_set_formatter_output_functions(std_formatter, param, param$1);
+}
+
+function get_formatter_output_functions(param) {
+  return pp_get_formatter_output_functions(std_formatter, param);
+}
+
+function set_all_formatter_output_functions(param, param$1, param$2, param$3) {
+  return pp_set_all_formatter_output_functions(std_formatter, param, param$1, param$2, param$3);
+}
+
+function get_all_formatter_output_functions(param) {
+  return pp_get_all_formatter_output_functions(std_formatter, param);
+}
+
+function set_formatter_tag_functions(param) {
+  return pp_set_formatter_tag_functions(std_formatter, param);
+}
+
+function get_formatter_tag_functions(param) {
+  return pp_get_formatter_tag_functions(std_formatter, param);
+}
+
+function set_print_tags(param) {
+  std_formatter[/* pp_print_tags */20] = param;
+  return /* () */0;
+}
+
+function get_print_tags() {
+  return std_formatter[/* pp_print_tags */20];
+}
+
+function set_mark_tags(param) {
+  std_formatter[/* pp_mark_tags */21] = param;
+  return /* () */0;
+}
+
+function get_mark_tags() {
+  return std_formatter[/* pp_mark_tags */21];
+}
+
+function set_tags(param) {
+  return pp_set_tags(std_formatter, param);
+}
+
+function compute_tag(output, tag_acc) {
+  var buf = $$Buffer.create(16);
+  var ppf = formatter_of_buffer(buf);
+  Curry._2(output, ppf, tag_acc);
+  pp_print_flush(ppf, /* () */0);
+  var len = buf[/* position */1];
+  if (len < 2) {
+    return $$Buffer.contents(buf);
+  } else {
+    return $$Buffer.sub(buf, 1, len - 2 | 0);
+  }
+}
+
+function output_formatting_lit(ppf, fmting_lit) {
+  if (typeof fmting_lit === "number") {
+    switch (fmting_lit) {
+      case 0 : 
+          return pp_close_box(ppf, /* () */0);
+      case 1 : 
+          return pp_close_tag(ppf, /* () */0);
+      case 2 : 
+          return pp_print_flush(ppf, /* () */0);
+      case 3 : 
+          return pp_force_newline(ppf, /* () */0);
+      case 4 : 
+          return pp_print_newline(ppf, /* () */0);
+      case 5 : 
+          return pp_print_char(ppf, /* "@" */64);
+      case 6 : 
+          return pp_print_char(ppf, /* "%" */37);
+      
+    }
+  } else {
+    switch (fmting_lit.tag | 0) {
+      case 0 : 
+          return pp_print_break(ppf, fmting_lit[1], fmting_lit[2]);
+      case 1 : 
+          return /* () */0;
+      case 2 : 
+          pp_print_char(ppf, /* "@" */64);
+          return pp_print_char(ppf, fmting_lit[0]);
+      
+    }
+  }
+}
+
+function output_acc(ppf, acc) {
+  var exit = 0;
+  var p;
+  var size;
+  var s;
+  var p$1;
+  var size$1;
+  var c;
+  if (typeof acc === "number") {
+    return /* () */0;
+  } else {
+    switch (acc.tag | 0) {
+      case 0 : 
+          output_acc(ppf, acc[0]);
+          return output_formatting_lit(ppf, acc[1]);
+      case 1 : 
+          var match = acc[1];
+          var p$2 = acc[0];
+          output_acc(ppf, p$2);
+          if (match.tag) {
+            var match$1 = CamlinternalFormat.open_box_of_string(compute_tag(output_acc, match[0]));
+            return pp_open_box_gen(ppf, match$1[0], match$1[1]);
+          } else {
+            return pp_open_tag(ppf, compute_tag(output_acc, match[0]));
+          }
+      case 2 : 
+          var p$3 = acc[0];
+          var exit$1 = 0;
+          if (typeof p$3 === "number" || p$3.tag) {
+            exit$1 = 3;
+          } else {
+            var match$2 = p$3[1];
+            if (typeof match$2 === "number" || match$2.tag !== 1) {
+              exit$1 = 3;
+            } else {
+              p = p$3[0];
+              size = match$2[1];
+              s = acc[1];
+              exit = 1;
+            }
+          }
+          if (exit$1 === 3) {
+            output_acc(ppf, p$3);
+            return pp_print_string(ppf, acc[1]);
+          }
+          break;
+      case 3 : 
+          var p$4 = acc[0];
+          var exit$2 = 0;
+          if (typeof p$4 === "number" || p$4.tag) {
+            exit$2 = 3;
+          } else {
+            var match$3 = p$4[1];
+            if (typeof match$3 === "number" || match$3.tag !== 1) {
+              exit$2 = 3;
+            } else {
+              p$1 = p$4[0];
+              size$1 = match$3[1];
+              c = acc[1];
+              exit = 2;
+            }
+          }
+          if (exit$2 === 3) {
+            output_acc(ppf, p$4);
+            return pp_print_char(ppf, acc[1]);
+          }
+          break;
+      case 4 : 
+          var p$5 = acc[0];
+          var exit$3 = 0;
+          if (typeof p$5 === "number" || p$5.tag) {
+            exit$3 = 3;
+          } else {
+            var match$4 = p$5[1];
+            if (typeof match$4 === "number" || match$4.tag !== 1) {
+              exit$3 = 3;
+            } else {
+              p = p$5[0];
+              size = match$4[1];
+              s = acc[1];
+              exit = 1;
+            }
+          }
+          if (exit$3 === 3) {
+            output_acc(ppf, p$5);
+            return pp_print_string(ppf, acc[1]);
+          }
+          break;
+      case 5 : 
+          var p$6 = acc[0];
+          var exit$4 = 0;
+          if (typeof p$6 === "number" || p$6.tag) {
+            exit$4 = 3;
+          } else {
+            var match$5 = p$6[1];
+            if (typeof match$5 === "number" || match$5.tag !== 1) {
+              exit$4 = 3;
+            } else {
+              p$1 = p$6[0];
+              size$1 = match$5[1];
+              c = acc[1];
+              exit = 2;
+            }
+          }
+          if (exit$4 === 3) {
+            output_acc(ppf, p$6);
+            return pp_print_char(ppf, acc[1]);
+          }
+          break;
+      case 6 : 
+          output_acc(ppf, acc[0]);
+          return Curry._1(acc[1], ppf);
+      case 7 : 
+          output_acc(ppf, acc[0]);
+          return pp_print_flush(ppf, /* () */0);
+      case 8 : 
+          output_acc(ppf, acc[0]);
+          throw [
+                Caml_builtin_exceptions.invalid_argument,
+                acc[1]
+              ];
+      
+    }
+  }
+  switch (exit) {
+    case 1 : 
+        output_acc(ppf, p);
+        return pp_print_as_size(ppf, size, s);
+    case 2 : 
+        output_acc(ppf, p$1);
+        return pp_print_as_size(ppf, size$1, Caml_string.bytes_to_string(Bytes.make(1, c)));
+    
+  }
+}
+
+function strput_acc(ppf, acc) {
+  var exit = 0;
+  var p;
+  var size;
+  var s;
+  var p$1;
+  var size$1;
+  var c;
+  if (typeof acc === "number") {
+    return /* () */0;
+  } else {
+    switch (acc.tag | 0) {
+      case 0 : 
+          strput_acc(ppf, acc[0]);
+          return output_formatting_lit(ppf, acc[1]);
+      case 1 : 
+          var match = acc[1];
+          var p$2 = acc[0];
+          strput_acc(ppf, p$2);
+          if (match.tag) {
+            var match$1 = CamlinternalFormat.open_box_of_string(compute_tag(strput_acc, match[0]));
+            return pp_open_box_gen(ppf, match$1[0], match$1[1]);
+          } else {
+            return pp_open_tag(ppf, compute_tag(strput_acc, match[0]));
+          }
+      case 2 : 
+          var p$3 = acc[0];
+          var exit$1 = 0;
+          if (typeof p$3 === "number" || p$3.tag) {
+            exit$1 = 3;
+          } else {
+            var match$2 = p$3[1];
+            if (typeof match$2 === "number" || match$2.tag !== 1) {
+              exit$1 = 3;
+            } else {
+              p = p$3[0];
+              size = match$2[1];
+              s = acc[1];
+              exit = 1;
+            }
+          }
+          if (exit$1 === 3) {
+            strput_acc(ppf, p$3);
+            return pp_print_string(ppf, acc[1]);
+          }
+          break;
+      case 3 : 
+          var p$4 = acc[0];
+          var exit$2 = 0;
+          if (typeof p$4 === "number" || p$4.tag) {
+            exit$2 = 3;
+          } else {
+            var match$3 = p$4[1];
+            if (typeof match$3 === "number" || match$3.tag !== 1) {
+              exit$2 = 3;
+            } else {
+              p$1 = p$4[0];
+              size$1 = match$3[1];
+              c = acc[1];
+              exit = 2;
+            }
+          }
+          if (exit$2 === 3) {
+            strput_acc(ppf, p$4);
+            return pp_print_char(ppf, acc[1]);
+          }
+          break;
+      case 4 : 
+          var p$5 = acc[0];
+          var exit$3 = 0;
+          if (typeof p$5 === "number" || p$5.tag) {
+            exit$3 = 3;
+          } else {
+            var match$4 = p$5[1];
+            if (typeof match$4 === "number" || match$4.tag !== 1) {
+              exit$3 = 3;
+            } else {
+              p = p$5[0];
+              size = match$4[1];
+              s = acc[1];
+              exit = 1;
+            }
+          }
+          if (exit$3 === 3) {
+            strput_acc(ppf, p$5);
+            return pp_print_string(ppf, acc[1]);
+          }
+          break;
+      case 5 : 
+          var p$6 = acc[0];
+          var exit$4 = 0;
+          if (typeof p$6 === "number" || p$6.tag) {
+            exit$4 = 3;
+          } else {
+            var match$5 = p$6[1];
+            if (typeof match$5 === "number" || match$5.tag !== 1) {
+              exit$4 = 3;
+            } else {
+              p$1 = p$6[0];
+              size$1 = match$5[1];
+              c = acc[1];
+              exit = 2;
+            }
+          }
+          if (exit$4 === 3) {
+            strput_acc(ppf, p$6);
+            return pp_print_char(ppf, acc[1]);
+          }
+          break;
+      case 6 : 
+          var p$7 = acc[0];
+          var exit$5 = 0;
+          if (typeof p$7 === "number" || p$7.tag) {
+            exit$5 = 3;
+          } else {
+            var match$6 = p$7[1];
+            if (typeof match$6 === "number" || match$6.tag !== 1) {
+              exit$5 = 3;
+            } else {
+              strput_acc(ppf, p$7[0]);
+              return pp_print_as_size(ppf, match$6[1], Curry._1(acc[1], /* () */0));
+            }
+          }
+          if (exit$5 === 3) {
+            strput_acc(ppf, p$7);
+            return pp_print_string(ppf, Curry._1(acc[1], /* () */0));
+          }
+          break;
+      case 7 : 
+          strput_acc(ppf, acc[0]);
+          return pp_print_flush(ppf, /* () */0);
+      case 8 : 
+          strput_acc(ppf, acc[0]);
+          throw [
+                Caml_builtin_exceptions.invalid_argument,
+                acc[1]
+              ];
+      
+    }
+  }
+  switch (exit) {
+    case 1 : 
+        strput_acc(ppf, p);
+        return pp_print_as_size(ppf, size, s);
+    case 2 : 
+        strput_acc(ppf, p$1);
+        return pp_print_as_size(ppf, size$1, Caml_string.bytes_to_string(Bytes.make(1, c)));
+    
+  }
+}
+
+function kfprintf(k, o, param) {
+  return CamlinternalFormat.make_printf((function (o, acc) {
+                output_acc(o, acc);
+                return Curry._1(k, o);
+              }), o, /* End_of_acc */0, param[0]);
+}
+
+function ikfprintf(k, x, param) {
+  return CamlinternalFormat.make_printf((function (_, _$1) {
+                return Curry._1(k, x);
+              }), x, /* End_of_acc */0, param[0]);
+}
+
+function fprintf(ppf, fmt) {
+  return kfprintf((function () {
+                return /* () */0;
+              }), ppf, fmt);
+}
+
+function ifprintf(ppf, fmt) {
+  return ikfprintf((function () {
+                return /* () */0;
+              }), ppf, fmt);
+}
+
+function printf(fmt) {
+  return fprintf(std_formatter, fmt);
+}
+
+function eprintf(fmt) {
+  return fprintf(err_formatter, fmt);
+}
+
+function ksprintf(k, param) {
+  var b = $$Buffer.create(512);
+  var ppf = formatter_of_buffer(b);
+  var k$prime = function (_, acc) {
+    strput_acc(ppf, acc);
+    return Curry._1(k, flush_buf_formatter(b, ppf));
+  };
+  return CamlinternalFormat.make_printf(k$prime, /* () */0, /* End_of_acc */0, param[0]);
+}
+
+function sprintf(fmt) {
+  return ksprintf((function (s) {
+                return s;
+              }), fmt);
+}
+
+function asprintf(param) {
+  var b = $$Buffer.create(512);
+  var ppf = formatter_of_buffer(b);
+  var k$prime = function (ppf, acc) {
+    output_acc(ppf, acc);
+    pp_flush_queue(ppf, false);
+    return flush_buf_formatter(b, ppf);
+  };
+  return CamlinternalFormat.make_printf(k$prime, ppf, /* End_of_acc */0, param[0]);
+}
+
+function bprintf(b, param) {
+  var k = function (ppf, acc) {
+    output_acc(ppf, acc);
+    return pp_flush_queue(ppf, false);
+  };
+  return CamlinternalFormat.make_printf(k, formatter_of_buffer(b), /* End_of_acc */0, param[0]);
+}
+
+Pervasives.at_exit(print_flush);
+
+var kprintf = ksprintf;
+
+exports.open_box = open_box;
+exports.close_box = close_box;
+exports.print_string = print_string;
+exports.print_as = print_as;
+exports.print_int = print_int;
+exports.print_float = print_float;
+exports.print_char = print_char;
+exports.print_bool = print_bool;
+exports.print_space = print_space;
+exports.print_cut = print_cut;
+exports.print_break = print_break;
+exports.print_flush = print_flush;
+exports.print_newline = print_newline;
+exports.force_newline = force_newline;
+exports.print_if_newline = print_if_newline;
+exports.set_margin = set_margin;
+exports.get_margin = get_margin;
+exports.set_max_indent = set_max_indent;
+exports.get_max_indent = get_max_indent;
+exports.set_max_boxes = set_max_boxes;
+exports.get_max_boxes = get_max_boxes;
+exports.over_max_boxes = over_max_boxes;
+exports.open_hbox = open_hbox;
+exports.open_vbox = open_vbox;
+exports.open_hvbox = open_hvbox;
+exports.open_hovbox = open_hovbox;
+exports.open_tbox = open_tbox;
+exports.close_tbox = close_tbox;
+exports.print_tbreak = print_tbreak;
+exports.set_tab = set_tab;
+exports.print_tab = print_tab;
+exports.set_ellipsis_text = set_ellipsis_text;
+exports.get_ellipsis_text = get_ellipsis_text;
+exports.open_tag = open_tag;
+exports.close_tag = close_tag;
+exports.set_tags = set_tags;
+exports.set_print_tags = set_print_tags;
+exports.set_mark_tags = set_mark_tags;
+exports.get_print_tags = get_print_tags;
+exports.get_mark_tags = get_mark_tags;
+exports.set_formatter_out_channel = set_formatter_out_channel;
+exports.set_formatter_output_functions = set_formatter_output_functions;
+exports.get_formatter_output_functions = get_formatter_output_functions;
+exports.set_formatter_out_functions = set_formatter_out_functions;
+exports.get_formatter_out_functions = get_formatter_out_functions;
+exports.set_formatter_tag_functions = set_formatter_tag_functions;
+exports.get_formatter_tag_functions = get_formatter_tag_functions;
+exports.formatter_of_out_channel = formatter_of_out_channel;
+exports.std_formatter = std_formatter;
+exports.err_formatter = err_formatter;
+exports.formatter_of_buffer = formatter_of_buffer;
+exports.stdbuf = stdbuf;
+exports.str_formatter = str_formatter;
+exports.flush_str_formatter = flush_str_formatter;
+exports.make_formatter = make_formatter;
+exports.pp_open_hbox = pp_open_hbox;
+exports.pp_open_vbox = pp_open_vbox;
+exports.pp_open_hvbox = pp_open_hvbox;
+exports.pp_open_hovbox = pp_open_hovbox;
+exports.pp_open_box = pp_open_box;
+exports.pp_close_box = pp_close_box;
+exports.pp_open_tag = pp_open_tag;
+exports.pp_close_tag = pp_close_tag;
+exports.pp_print_string = pp_print_string;
+exports.pp_print_as = pp_print_as;
+exports.pp_print_int = pp_print_int;
+exports.pp_print_float = pp_print_float;
+exports.pp_print_char = pp_print_char;
+exports.pp_print_bool = pp_print_bool;
+exports.pp_print_break = pp_print_break;
+exports.pp_print_cut = pp_print_cut;
+exports.pp_print_space = pp_print_space;
+exports.pp_force_newline = pp_force_newline;
+exports.pp_print_flush = pp_print_flush;
+exports.pp_print_newline = pp_print_newline;
+exports.pp_print_if_newline = pp_print_if_newline;
+exports.pp_open_tbox = pp_open_tbox;
+exports.pp_close_tbox = pp_close_tbox;
+exports.pp_print_tbreak = pp_print_tbreak;
+exports.pp_set_tab = pp_set_tab;
+exports.pp_print_tab = pp_print_tab;
+exports.pp_set_tags = pp_set_tags;
+exports.pp_set_print_tags = pp_set_print_tags;
+exports.pp_set_mark_tags = pp_set_mark_tags;
+exports.pp_get_print_tags = pp_get_print_tags;
+exports.pp_get_mark_tags = pp_get_mark_tags;
+exports.pp_set_margin = pp_set_margin;
+exports.pp_get_margin = pp_get_margin;
+exports.pp_set_max_indent = pp_set_max_indent;
+exports.pp_get_max_indent = pp_get_max_indent;
+exports.pp_set_max_boxes = pp_set_max_boxes;
+exports.pp_get_max_boxes = pp_get_max_boxes;
+exports.pp_over_max_boxes = pp_over_max_boxes;
+exports.pp_set_ellipsis_text = pp_set_ellipsis_text;
+exports.pp_get_ellipsis_text = pp_get_ellipsis_text;
+exports.pp_set_formatter_out_channel = pp_set_formatter_out_channel;
+exports.pp_set_formatter_output_functions = pp_set_formatter_output_functions;
+exports.pp_get_formatter_output_functions = pp_get_formatter_output_functions;
+exports.pp_set_formatter_tag_functions = pp_set_formatter_tag_functions;
+exports.pp_get_formatter_tag_functions = pp_get_formatter_tag_functions;
+exports.pp_set_formatter_out_functions = pp_set_formatter_out_functions;
+exports.pp_get_formatter_out_functions = pp_get_formatter_out_functions;
+exports.pp_print_list = pp_print_list;
+exports.pp_print_text = pp_print_text;
+exports.fprintf = fprintf;
+exports.printf = printf;
+exports.eprintf = eprintf;
+exports.sprintf = sprintf;
+exports.asprintf = asprintf;
+exports.ifprintf = ifprintf;
+exports.kfprintf = kfprintf;
+exports.ikfprintf = ikfprintf;
+exports.ksprintf = ksprintf;
+exports.bprintf = bprintf;
+exports.kprintf = kprintf;
+exports.set_all_formatter_output_functions = set_all_formatter_output_functions;
+exports.get_all_formatter_output_functions = get_all_formatter_output_functions;
+exports.pp_set_all_formatter_output_functions = pp_set_all_formatter_output_functions;
+exports.pp_get_all_formatter_output_functions = pp_get_all_formatter_output_functions;
+/* blank_line Not a pure module */
+
+},{"./block.js":"../node_modules/bs-platform/lib/js/block.js","./bytes.js":"../node_modules/bs-platform/lib/js/bytes.js","./curry.js":"../node_modules/bs-platform/lib/js/curry.js","./buffer.js":"../node_modules/bs-platform/lib/js/buffer.js","./string.js":"../node_modules/bs-platform/lib/js/string.js","./caml_io.js":"../node_modules/bs-platform/lib/js/caml_io.js","./caml_obj.js":"../node_modules/bs-platform/lib/js/caml_obj.js","./pervasives.js":"../node_modules/bs-platform/lib/js/pervasives.js","./caml_string.js":"../node_modules/bs-platform/lib/js/caml_string.js","./caml_primitive.js":"../node_modules/bs-platform/lib/js/caml_primitive.js","./caml_exceptions.js":"../node_modules/bs-platform/lib/js/caml_exceptions.js","./camlinternalFormat.js":"../node_modules/bs-platform/lib/js/camlinternalFormat.js","./caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js"}],"../node_modules/bs-platform/lib/js/js_int.js":[function(require,module,exports) {
 'use strict';
 
 
@@ -13057,799 +22555,7 @@ exports.wrapJsForReason = wrapJsForReason;
 exports.Router = Router;
 /* dummyInteropComponent Not a pure module */
 
-},{"bs-platform/lib/js/curry.js":"../node_modules/bs-platform/lib/js/curry.js","react":"../node_modules/react/index.js","bs-platform/lib/js/caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js","./ReasonReactOptimizedCreateClass.js":"../node_modules/reason-react/src/ReasonReactOptimizedCreateClass.js"}],"../node_modules/bs-platform/lib/js/char.js":[function(require,module,exports) {
-'use strict';
-
-var Caml_string = require("./caml_string.js");
-var Caml_builtin_exceptions = require("./caml_builtin_exceptions.js");
-
-function chr(n) {
-  if (n < 0 || n > 255) {
-    throw [
-          Caml_builtin_exceptions.invalid_argument,
-          "Char.chr"
-        ];
-  } else {
-    return n;
-  }
-}
-
-function escaped(c) {
-  var exit = 0;
-  if (c >= 40) {
-    if (c !== 92) {
-      exit = c >= 127 ? 1 : 2;
-    } else {
-      return "\\\\";
-    }
-  } else if (c >= 32) {
-    if (c >= 39) {
-      return "\\'";
-    } else {
-      exit = 2;
-    }
-  } else if (c >= 14) {
-    exit = 1;
-  } else {
-    switch (c) {
-      case 8 : 
-          return "\\b";
-      case 9 : 
-          return "\\t";
-      case 10 : 
-          return "\\n";
-      case 0 : 
-      case 1 : 
-      case 2 : 
-      case 3 : 
-      case 4 : 
-      case 5 : 
-      case 6 : 
-      case 7 : 
-      case 11 : 
-      case 12 : 
-          exit = 1;
-          break;
-      case 13 : 
-          return "\\r";
-      
-    }
-  }
-  switch (exit) {
-    case 1 : 
-        var s = Caml_string.caml_create_string(4);
-        s[0] = /* "\\" */92;
-        s[1] = 48 + (c / 100 | 0) | 0;
-        s[2] = 48 + (c / 10 | 0) % 10 | 0;
-        s[3] = 48 + c % 10 | 0;
-        return Caml_string.bytes_to_string(s);
-    case 2 : 
-        var s$1 = Caml_string.caml_create_string(1);
-        s$1[0] = c;
-        return Caml_string.bytes_to_string(s$1);
-    
-  }
-}
-
-function lowercase(c) {
-  if (c >= /* "A" */65 && c <= /* "Z" */90 || c >= /* "\192" */192 && c <= /* "\214" */214 || c >= /* "\216" */216 && c <= /* "\222" */222) {
-    return c + 32 | 0;
-  } else {
-    return c;
-  }
-}
-
-function uppercase(c) {
-  if (c >= /* "a" */97 && c <= /* "z" */122 || c >= /* "\224" */224 && c <= /* "\246" */246 || c >= /* "\248" */248 && c <= /* "\254" */254) {
-    return c - 32 | 0;
-  } else {
-    return c;
-  }
-}
-
-function compare(c1, c2) {
-  return c1 - c2 | 0;
-}
-
-exports.chr = chr;
-exports.escaped = escaped;
-exports.lowercase = lowercase;
-exports.uppercase = uppercase;
-exports.compare = compare;
-/* No side effect */
-
-},{"./caml_string.js":"../node_modules/bs-platform/lib/js/caml_string.js","./caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js"}],"../node_modules/bs-platform/lib/js/bytes.js":[function(require,module,exports) {
-'use strict';
-
-var Char = require("./char.js");
-var List = require("./list.js");
-var Curry = require("./curry.js");
-var Caml_obj = require("./caml_obj.js");
-var Caml_int32 = require("./caml_int32.js");
-var Caml_string = require("./caml_string.js");
-var Caml_primitive = require("./caml_primitive.js");
-var Caml_builtin_exceptions = require("./caml_builtin_exceptions.js");
-
-function make(n, c) {
-  var s = Caml_string.caml_create_string(n);
-  Caml_string.caml_fill_string(s, 0, n, c);
-  return s;
-}
-
-function init(n, f) {
-  var s = Caml_string.caml_create_string(n);
-  for(var i = 0 ,i_finish = n - 1 | 0; i <= i_finish; ++i){
-    s[i] = Curry._1(f, i);
-  }
-  return s;
-}
-
-var empty = [];
-
-function copy(s) {
-  var len = s.length;
-  var r = Caml_string.caml_create_string(len);
-  Caml_string.caml_blit_bytes(s, 0, r, 0, len);
-  return r;
-}
-
-function to_string(b) {
-  return Caml_string.bytes_to_string(copy(b));
-}
-
-function of_string(s) {
-  return copy(Caml_string.bytes_of_string(s));
-}
-
-function sub(s, ofs, len) {
-  if (ofs < 0 || len < 0 || ofs > (s.length - len | 0)) {
-    throw [
-          Caml_builtin_exceptions.invalid_argument,
-          "String.sub / Bytes.sub"
-        ];
-  } else {
-    var r = Caml_string.caml_create_string(len);
-    Caml_string.caml_blit_bytes(s, ofs, r, 0, len);
-    return r;
-  }
-}
-
-function sub_string(b, ofs, len) {
-  return Caml_string.bytes_to_string(sub(b, ofs, len));
-}
-
-function extend(s, left, right) {
-  var len = (s.length + left | 0) + right | 0;
-  var r = Caml_string.caml_create_string(len);
-  var match = left < 0 ? /* tuple */[
-      -left | 0,
-      0
-    ] : /* tuple */[
-      0,
-      left
-    ];
-  var dstoff = match[1];
-  var srcoff = match[0];
-  var cpylen = Caml_primitive.caml_int_min(s.length - srcoff | 0, len - dstoff | 0);
-  if (cpylen > 0) {
-    Caml_string.caml_blit_bytes(s, srcoff, r, dstoff, cpylen);
-  }
-  return r;
-}
-
-function fill(s, ofs, len, c) {
-  if (ofs < 0 || len < 0 || ofs > (s.length - len | 0)) {
-    throw [
-          Caml_builtin_exceptions.invalid_argument,
-          "String.fill / Bytes.fill"
-        ];
-  } else {
-    return Caml_string.caml_fill_string(s, ofs, len, c);
-  }
-}
-
-function blit(s1, ofs1, s2, ofs2, len) {
-  if (len < 0 || ofs1 < 0 || ofs1 > (s1.length - len | 0) || ofs2 < 0 || ofs2 > (s2.length - len | 0)) {
-    throw [
-          Caml_builtin_exceptions.invalid_argument,
-          "Bytes.blit"
-        ];
-  } else {
-    return Caml_string.caml_blit_bytes(s1, ofs1, s2, ofs2, len);
-  }
-}
-
-function blit_string(s1, ofs1, s2, ofs2, len) {
-  if (len < 0 || ofs1 < 0 || ofs1 > (s1.length - len | 0) || ofs2 < 0 || ofs2 > (s2.length - len | 0)) {
-    throw [
-          Caml_builtin_exceptions.invalid_argument,
-          "String.blit / Bytes.blit_string"
-        ];
-  } else {
-    return Caml_string.caml_blit_string(s1, ofs1, s2, ofs2, len);
-  }
-}
-
-function iter(f, a) {
-  for(var i = 0 ,i_finish = a.length - 1 | 0; i <= i_finish; ++i){
-    Curry._1(f, a[i]);
-  }
-  return /* () */0;
-}
-
-function iteri(f, a) {
-  for(var i = 0 ,i_finish = a.length - 1 | 0; i <= i_finish; ++i){
-    Curry._2(f, i, a[i]);
-  }
-  return /* () */0;
-}
-
-function concat(sep, l) {
-  if (l) {
-    var hd = l[0];
-    var num = /* record */[/* contents */0];
-    var len = /* record */[/* contents */0];
-    List.iter((function (s) {
-            num[0] = num[0] + 1 | 0;
-            len[0] = len[0] + s.length | 0;
-            return /* () */0;
-          }), l);
-    var r = Caml_string.caml_create_string(len[0] + Caml_int32.imul(sep.length, num[0] - 1 | 0) | 0);
-    Caml_string.caml_blit_bytes(hd, 0, r, 0, hd.length);
-    var pos = /* record */[/* contents */hd.length];
-    List.iter((function (s) {
-            Caml_string.caml_blit_bytes(sep, 0, r, pos[0], sep.length);
-            pos[0] = pos[0] + sep.length | 0;
-            Caml_string.caml_blit_bytes(s, 0, r, pos[0], s.length);
-            pos[0] = pos[0] + s.length | 0;
-            return /* () */0;
-          }), l[1]);
-    return r;
-  } else {
-    return empty;
-  }
-}
-
-function cat(s1, s2) {
-  var l1 = s1.length;
-  var l2 = s2.length;
-  var r = Caml_string.caml_create_string(l1 + l2 | 0);
-  Caml_string.caml_blit_bytes(s1, 0, r, 0, l1);
-  Caml_string.caml_blit_bytes(s2, 0, r, l1, l2);
-  return r;
-}
-
-function is_space(param) {
-  var switcher = param - 9 | 0;
-  if (switcher > 4 || switcher < 0) {
-    return switcher === 23;
-  } else {
-    return switcher !== 2;
-  }
-}
-
-function trim(s) {
-  var len = s.length;
-  var i = 0;
-  while(i < len && is_space(s[i])) {
-    i = i + 1 | 0;
-  };
-  var j = len - 1 | 0;
-  while(j >= i && is_space(s[j])) {
-    j = j - 1 | 0;
-  };
-  if (j >= i) {
-    return sub(s, i, (j - i | 0) + 1 | 0);
-  } else {
-    return empty;
-  }
-}
-
-function escaped(s) {
-  var n = 0;
-  for(var i = 0 ,i_finish = s.length - 1 | 0; i <= i_finish; ++i){
-    var match = s[i];
-    var tmp;
-    if (match >= 32) {
-      var switcher = match - 34 | 0;
-      tmp = switcher > 58 || switcher < 0 ? (
-          switcher >= 93 ? 4 : 1
-        ) : (
-          switcher > 57 || switcher < 1 ? 2 : 1
-        );
-    } else {
-      tmp = match >= 11 ? (
-          match !== 13 ? 4 : 2
-        ) : (
-          match >= 8 ? 2 : 4
-        );
-    }
-    n = n + tmp | 0;
-  }
-  if (n === s.length) {
-    return copy(s);
-  } else {
-    var s$prime = Caml_string.caml_create_string(n);
-    n = 0;
-    for(var i$1 = 0 ,i_finish$1 = s.length - 1 | 0; i$1 <= i_finish$1; ++i$1){
-      var c = s[i$1];
-      var exit = 0;
-      if (c >= 35) {
-        if (c !== 92) {
-          if (c >= 127) {
-            exit = 1;
-          } else {
-            s$prime[n] = c;
-          }
-        } else {
-          exit = 2;
-        }
-      } else if (c >= 32) {
-        if (c >= 34) {
-          exit = 2;
-        } else {
-          s$prime[n] = c;
-        }
-      } else if (c >= 14) {
-        exit = 1;
-      } else {
-        switch (c) {
-          case 8 : 
-              s$prime[n] = /* "\\" */92;
-              n = n + 1 | 0;
-              s$prime[n] = /* "b" */98;
-              break;
-          case 9 : 
-              s$prime[n] = /* "\\" */92;
-              n = n + 1 | 0;
-              s$prime[n] = /* "t" */116;
-              break;
-          case 10 : 
-              s$prime[n] = /* "\\" */92;
-              n = n + 1 | 0;
-              s$prime[n] = /* "n" */110;
-              break;
-          case 0 : 
-          case 1 : 
-          case 2 : 
-          case 3 : 
-          case 4 : 
-          case 5 : 
-          case 6 : 
-          case 7 : 
-          case 11 : 
-          case 12 : 
-              exit = 1;
-              break;
-          case 13 : 
-              s$prime[n] = /* "\\" */92;
-              n = n + 1 | 0;
-              s$prime[n] = /* "r" */114;
-              break;
-          
-        }
-      }
-      switch (exit) {
-        case 1 : 
-            s$prime[n] = /* "\\" */92;
-            n = n + 1 | 0;
-            s$prime[n] = 48 + (c / 100 | 0) | 0;
-            n = n + 1 | 0;
-            s$prime[n] = 48 + (c / 10 | 0) % 10 | 0;
-            n = n + 1 | 0;
-            s$prime[n] = 48 + c % 10 | 0;
-            break;
-        case 2 : 
-            s$prime[n] = /* "\\" */92;
-            n = n + 1 | 0;
-            s$prime[n] = c;
-            break;
-        
-      }
-      n = n + 1 | 0;
-    }
-    return s$prime;
-  }
-}
-
-function map(f, s) {
-  var l = s.length;
-  if (l === 0) {
-    return s;
-  } else {
-    var r = Caml_string.caml_create_string(l);
-    for(var i = 0 ,i_finish = l - 1 | 0; i <= i_finish; ++i){
-      r[i] = Curry._1(f, s[i]);
-    }
-    return r;
-  }
-}
-
-function mapi(f, s) {
-  var l = s.length;
-  if (l === 0) {
-    return s;
-  } else {
-    var r = Caml_string.caml_create_string(l);
-    for(var i = 0 ,i_finish = l - 1 | 0; i <= i_finish; ++i){
-      r[i] = Curry._2(f, i, s[i]);
-    }
-    return r;
-  }
-}
-
-function uppercase(s) {
-  return map(Char.uppercase, s);
-}
-
-function lowercase(s) {
-  return map(Char.lowercase, s);
-}
-
-function apply1(f, s) {
-  if (s.length === 0) {
-    return s;
-  } else {
-    var r = copy(s);
-    r[0] = Curry._1(f, s[0]);
-    return r;
-  }
-}
-
-function capitalize(s) {
-  return apply1(Char.uppercase, s);
-}
-
-function uncapitalize(s) {
-  return apply1(Char.lowercase, s);
-}
-
-function index_rec(s, lim, _i, c) {
-  while(true) {
-    var i = _i;
-    if (i >= lim) {
-      throw Caml_builtin_exceptions.not_found;
-    } else if (s[i] === c) {
-      return i;
-    } else {
-      _i = i + 1 | 0;
-      continue ;
-    }
-  };
-}
-
-function index(s, c) {
-  return index_rec(s, s.length, 0, c);
-}
-
-function index_from(s, i, c) {
-  var l = s.length;
-  if (i < 0 || i > l) {
-    throw [
-          Caml_builtin_exceptions.invalid_argument,
-          "String.index_from / Bytes.index_from"
-        ];
-  } else {
-    return index_rec(s, l, i, c);
-  }
-}
-
-function rindex_rec(s, _i, c) {
-  while(true) {
-    var i = _i;
-    if (i < 0) {
-      throw Caml_builtin_exceptions.not_found;
-    } else if (s[i] === c) {
-      return i;
-    } else {
-      _i = i - 1 | 0;
-      continue ;
-    }
-  };
-}
-
-function rindex(s, c) {
-  return rindex_rec(s, s.length - 1 | 0, c);
-}
-
-function rindex_from(s, i, c) {
-  if (i < -1 || i >= s.length) {
-    throw [
-          Caml_builtin_exceptions.invalid_argument,
-          "String.rindex_from / Bytes.rindex_from"
-        ];
-  } else {
-    return rindex_rec(s, i, c);
-  }
-}
-
-function contains_from(s, i, c) {
-  var l = s.length;
-  if (i < 0 || i > l) {
-    throw [
-          Caml_builtin_exceptions.invalid_argument,
-          "String.contains_from / Bytes.contains_from"
-        ];
-  } else {
-    try {
-      index_rec(s, l, i, c);
-      return true;
-    }
-    catch (exn){
-      if (exn === Caml_builtin_exceptions.not_found) {
-        return false;
-      } else {
-        throw exn;
-      }
-    }
-  }
-}
-
-function contains(s, c) {
-  return contains_from(s, 0, c);
-}
-
-function rcontains_from(s, i, c) {
-  if (i < 0 || i >= s.length) {
-    throw [
-          Caml_builtin_exceptions.invalid_argument,
-          "String.rcontains_from / Bytes.rcontains_from"
-        ];
-  } else {
-    try {
-      rindex_rec(s, i, c);
-      return true;
-    }
-    catch (exn){
-      if (exn === Caml_builtin_exceptions.not_found) {
-        return false;
-      } else {
-        throw exn;
-      }
-    }
-  }
-}
-
-var compare = Caml_obj.caml_compare;
-
-var unsafe_to_string = Caml_string.bytes_to_string;
-
-var unsafe_of_string = Caml_string.bytes_of_string;
-
-exports.make = make;
-exports.init = init;
-exports.empty = empty;
-exports.copy = copy;
-exports.of_string = of_string;
-exports.to_string = to_string;
-exports.sub = sub;
-exports.sub_string = sub_string;
-exports.extend = extend;
-exports.fill = fill;
-exports.blit = blit;
-exports.blit_string = blit_string;
-exports.concat = concat;
-exports.cat = cat;
-exports.iter = iter;
-exports.iteri = iteri;
-exports.map = map;
-exports.mapi = mapi;
-exports.trim = trim;
-exports.escaped = escaped;
-exports.index = index;
-exports.rindex = rindex;
-exports.index_from = index_from;
-exports.rindex_from = rindex_from;
-exports.contains = contains;
-exports.contains_from = contains_from;
-exports.rcontains_from = rcontains_from;
-exports.uppercase = uppercase;
-exports.lowercase = lowercase;
-exports.capitalize = capitalize;
-exports.uncapitalize = uncapitalize;
-exports.compare = compare;
-exports.unsafe_to_string = unsafe_to_string;
-exports.unsafe_of_string = unsafe_of_string;
-/* No side effect */
-
-},{"./char.js":"../node_modules/bs-platform/lib/js/char.js","./list.js":"../node_modules/bs-platform/lib/js/list.js","./curry.js":"../node_modules/bs-platform/lib/js/curry.js","./caml_obj.js":"../node_modules/bs-platform/lib/js/caml_obj.js","./caml_int32.js":"../node_modules/bs-platform/lib/js/caml_int32.js","./caml_string.js":"../node_modules/bs-platform/lib/js/caml_string.js","./caml_primitive.js":"../node_modules/bs-platform/lib/js/caml_primitive.js","./caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js"}],"../node_modules/bs-platform/lib/js/string.js":[function(require,module,exports) {
-'use strict';
-
-var List = require("./list.js");
-var Bytes = require("./bytes.js");
-var Caml_int32 = require("./caml_int32.js");
-var Caml_string = require("./caml_string.js");
-var Caml_primitive = require("./caml_primitive.js");
-
-function make(n, c) {
-  return Caml_string.bytes_to_string(Bytes.make(n, c));
-}
-
-function init(n, f) {
-  return Caml_string.bytes_to_string(Bytes.init(n, f));
-}
-
-function copy(s) {
-  return Caml_string.bytes_to_string(Bytes.copy(Caml_string.bytes_of_string(s)));
-}
-
-function sub(s, ofs, len) {
-  return Caml_string.bytes_to_string(Bytes.sub(Caml_string.bytes_of_string(s), ofs, len));
-}
-
-function concat(sep, l) {
-  if (l) {
-    var hd = l[0];
-    var num = /* record */[/* contents */0];
-    var len = /* record */[/* contents */0];
-    List.iter((function (s) {
-            num[0] = num[0] + 1 | 0;
-            len[0] = len[0] + s.length | 0;
-            return /* () */0;
-          }), l);
-    var r = Caml_string.caml_create_string(len[0] + Caml_int32.imul(sep.length, num[0] - 1 | 0) | 0);
-    Caml_string.caml_blit_string(hd, 0, r, 0, hd.length);
-    var pos = /* record */[/* contents */hd.length];
-    List.iter((function (s) {
-            Caml_string.caml_blit_string(sep, 0, r, pos[0], sep.length);
-            pos[0] = pos[0] + sep.length | 0;
-            Caml_string.caml_blit_string(s, 0, r, pos[0], s.length);
-            pos[0] = pos[0] + s.length | 0;
-            return /* () */0;
-          }), l[1]);
-    return Caml_string.bytes_to_string(r);
-  } else {
-    return "";
-  }
-}
-
-function iter(f, s) {
-  return Bytes.iter(f, Caml_string.bytes_of_string(s));
-}
-
-function iteri(f, s) {
-  return Bytes.iteri(f, Caml_string.bytes_of_string(s));
-}
-
-function map(f, s) {
-  return Caml_string.bytes_to_string(Bytes.map(f, Caml_string.bytes_of_string(s)));
-}
-
-function mapi(f, s) {
-  return Caml_string.bytes_to_string(Bytes.mapi(f, Caml_string.bytes_of_string(s)));
-}
-
-function is_space(param) {
-  var switcher = param - 9 | 0;
-  if (switcher > 4 || switcher < 0) {
-    return switcher === 23;
-  } else {
-    return switcher !== 2;
-  }
-}
-
-function trim(s) {
-  if (s === "" || !(is_space(s.charCodeAt(0)) || is_space(s.charCodeAt(s.length - 1 | 0)))) {
-    return s;
-  } else {
-    return Caml_string.bytes_to_string(Bytes.trim(Caml_string.bytes_of_string(s)));
-  }
-}
-
-function escaped(s) {
-  var needs_escape = function (_i) {
-    while(true) {
-      var i = _i;
-      if (i >= s.length) {
-        return false;
-      } else {
-        var match = s.charCodeAt(i);
-        if (match >= 32) {
-          var switcher = match - 34 | 0;
-          if (switcher > 58 || switcher < 0) {
-            if (switcher >= 93) {
-              return true;
-            } else {
-              _i = i + 1 | 0;
-              continue ;
-            }
-          } else if (switcher > 57 || switcher < 1) {
-            return true;
-          } else {
-            _i = i + 1 | 0;
-            continue ;
-          }
-        } else {
-          return true;
-        }
-      }
-    };
-  };
-  if (needs_escape(0)) {
-    return Caml_string.bytes_to_string(Bytes.escaped(Caml_string.bytes_of_string(s)));
-  } else {
-    return s;
-  }
-}
-
-function index(s, c) {
-  return Bytes.index(Caml_string.bytes_of_string(s), c);
-}
-
-function rindex(s, c) {
-  return Bytes.rindex(Caml_string.bytes_of_string(s), c);
-}
-
-function index_from(s, i, c) {
-  return Bytes.index_from(Caml_string.bytes_of_string(s), i, c);
-}
-
-function rindex_from(s, i, c) {
-  return Bytes.rindex_from(Caml_string.bytes_of_string(s), i, c);
-}
-
-function contains(s, c) {
-  return Bytes.contains(Caml_string.bytes_of_string(s), c);
-}
-
-function contains_from(s, i, c) {
-  return Bytes.contains_from(Caml_string.bytes_of_string(s), i, c);
-}
-
-function rcontains_from(s, i, c) {
-  return Bytes.rcontains_from(Caml_string.bytes_of_string(s), i, c);
-}
-
-function uppercase(s) {
-  return Caml_string.bytes_to_string(Bytes.uppercase(Caml_string.bytes_of_string(s)));
-}
-
-function lowercase(s) {
-  return Caml_string.bytes_to_string(Bytes.lowercase(Caml_string.bytes_of_string(s)));
-}
-
-function capitalize(s) {
-  return Caml_string.bytes_to_string(Bytes.capitalize(Caml_string.bytes_of_string(s)));
-}
-
-function uncapitalize(s) {
-  return Caml_string.bytes_to_string(Bytes.uncapitalize(Caml_string.bytes_of_string(s)));
-}
-
-var compare = Caml_primitive.caml_string_compare;
-
-var fill = Bytes.fill;
-
-var blit = Bytes.blit_string;
-
-exports.make = make;
-exports.init = init;
-exports.copy = copy;
-exports.sub = sub;
-exports.fill = fill;
-exports.blit = blit;
-exports.concat = concat;
-exports.iter = iter;
-exports.iteri = iteri;
-exports.map = map;
-exports.mapi = mapi;
-exports.trim = trim;
-exports.escaped = escaped;
-exports.index = index;
-exports.rindex = rindex;
-exports.index_from = index_from;
-exports.rindex_from = rindex_from;
-exports.contains = contains;
-exports.contains_from = contains_from;
-exports.rcontains_from = rcontains_from;
-exports.uppercase = uppercase;
-exports.lowercase = lowercase;
-exports.capitalize = capitalize;
-exports.uncapitalize = uncapitalize;
-exports.compare = compare;
-/* No side effect */
-
-},{"./list.js":"../node_modules/bs-platform/lib/js/list.js","./bytes.js":"../node_modules/bs-platform/lib/js/bytes.js","./caml_int32.js":"../node_modules/bs-platform/lib/js/caml_int32.js","./caml_string.js":"../node_modules/bs-platform/lib/js/caml_string.js","./caml_primitive.js":"../node_modules/bs-platform/lib/js/caml_primitive.js"}],"../node_modules/glamor/lib/sheet.js":[function(require,module,exports) {
+},{"bs-platform/lib/js/curry.js":"../node_modules/bs-platform/lib/js/curry.js","react":"../node_modules/react/index.js","bs-platform/lib/js/caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js","./ReasonReactOptimizedCreateClass.js":"../node_modules/reason-react/src/ReasonReactOptimizedCreateClass.js"}],"../node_modules/glamor/lib/sheet.js":[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -21292,21 +29998,6 @@ Block.simpleVariant("::", [Css.alignItems(
 98248149),
 /* [] */
 0]));
-
-function actionButton(disabled) {
-  return Css.style(
-  /* :: */
-  Block.simpleVariant("::", [Css.background(disabled ? Css.darkgray : Css.white),
-  /* :: */
-  Block.simpleVariant("::", [Css.color(Css.black),
-  /* :: */
-  Block.simpleVariant("::", [Css.border(Css.px(1), Css.solid, Css.black),
-  /* :: */
-  Block.simpleVariant("::", [Css.borderRadius(Css.px(3)),
-  /* [] */
-  0])])])]));
-}
-
 Css.$$global("body",
 /* :: */
 Block.simpleVariant("::", [Css.margin(Css.px(5)),
@@ -21326,7 +30017,6 @@ exports.title = title;
 exports.artist = artist;
 exports.playerEditor = playerEditor;
 exports.comments = comments;
-exports.actionButton = actionButton;
 /* none Not a pure module */
 },{"bs-css/src/Css.js":"../node_modules/bs-css/src/Css.js","bs-platform/lib/js/block.js":"../node_modules/bs-platform/lib/js/block.js"}],"Util.bs.js":[function(require,module,exports) {
 'use strict';
@@ -21354,12 +30044,12 @@ function str(prim) {
 }
 
 function tap(x) {
-  console.log(x);
+  console.log("Tap: " + (String(x) + ""));
   return x;
 }
 
 function tap2(x, y) {
-  console.log(x, y);
+  console.log(x, "Tap: " + (String(y) + ""));
   return y;
 }
 
@@ -21606,7 +30296,15 @@ function make(song, $staropt$star, $staropt$star$1, $staropt$star$2, _) {
 
 var example =
 /* record */
-Block.record(["id", "title", "artist", "url", "comments"], [1, "Young and Beautiful Love", "Ashley D'Souza", "https://soundcloud.com/ashley-dsouza-106423765/young-and-beautiful-love", 0]);
+Block.record(["id", "title", "artist", "url", "comments"], [1, "Young and Beautiful Love", "Ashley D'Souza", "https://soundcloud.com/ashley-dsouza-106423765/young-and-beautiful-love", Block.simpleVariant("::", [
+/* record */
+Block.record(["location", "comment"], [23.3, "Nice!"]),
+/* :: */
+Block.simpleVariant("::", [
+/* record */
+Block.record(["location", "comment"], [100.1, "Louder, please"]),
+/* [] */
+0])])]);
 var demoSongHeader = renderSongHeader(example, ignore, "");
 var comp$1 = ReasonReact.statelessComponent("demo");
 var song =
@@ -25550,6 +34248,8 @@ var Curry = require("bs-platform/lib/js/curry.js");
 
 var React = require("react");
 
+var Format = require("bs-platform/lib/js/format.js");
+
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 
 var Belt_Debug = require("bs-platform/lib/js/belt_Debug.js");
@@ -25622,96 +34322,7 @@ function addFeedbackToSong(comment, loc, song) {
   );
 }
 
-var component$1 = ReasonReact.statelessComponent("Comments");
-
 function dropWhile(_list, pred) {
-  while (true) {
-    var list = _list;
-
-    if (list) {
-      var match = !Curry._1(pred, list[0]);
-
-      if (match) {
-        return list;
-      } else {
-        _list = list[1];
-        continue;
-      }
-    } else {
-      return (
-        /* [] */
-        0
-      );
-    }
-  }
-
-  ;
-}
-
-function make(inProgress, _) {
-  return (
-    /* record */
-    Block.record(["debugName", "reactClassInternal", "handedOffState", "willReceiveProps", "didMount", "didUpdate", "willUnmount", "willUpdate", "shouldUpdate", "render", "initialState", "retainedProps", "reducer", "jsElementWrapped"], [component$1[
-    /* debugName */
-    0], component$1[
-    /* reactClassInternal */
-    1], component$1[
-    /* handedOffState */
-    2], component$1[
-    /* willReceiveProps */
-    3], component$1[
-    /* didMount */
-    4], component$1[
-    /* didUpdate */
-    5], component$1[
-    /* willUnmount */
-    6], component$1[
-    /* willUpdate */
-    7], component$1[
-    /* shouldUpdate */
-    8], function () {
-      return React.createElement("div", {
-        className: Styles$Lentil.commentsRoll
-      }, ReasonReact.element(undefined, undefined, Util$Lentil.Text[
-      /* make */
-      1]("Rolling Comments ...", undefined,
-      /* array */
-      [])), $$Array.of_list(List.map(function (c) {
-        return ReasonReact.element(undefined, undefined, Util$Lentil.Text[
-        /* make */
-        1](c[
-        /* comment */
-        1], undefined,
-        /* array */
-        []));
-      }, dropWhile(inProgress[
-      /* song */
-      0][
-      /* comments */
-      4], function (c) {
-        return c[
-        /* location */
-        0] < inProgress[
-        /* prog */
-        1];
-      }))));
-    }, component$1[
-    /* initialState */
-    10], component$1[
-    /* retainedProps */
-    11], component$1[
-    /* reducer */
-    12], component$1[
-    /* jsElementWrapped */
-    13]])
-  );
-}
-
-var CommentsRoll =
-/* module */
-Block.localModule(["component", "dropWhile", "make"], [component$1, dropWhile, make]);
-
-function dropWhile$1(_list, pred) {
   while (true) {
     var list = _list;
 
@@ -25740,17 +34351,39 @@ function renderCommentsRoll(songInProgress, style) {
     className: style
   }, ReasonReact.element(undefined, undefined, Util$Lentil.Text[
   /* make */
-  1]("Rolling Comments ...", undefined,
+  1]("Rolling Comments:", "bold",
   /* array */
   [])), $$Array.of_list(List.map(function (c) {
     return ReasonReact.element(undefined, undefined, Util$Lentil.Text[
     /* make */
     1](c[
     /* comment */
-    1], undefined,
+    1] + Curry._1(Format.sprintf(
+    /* Format */
+    Block.simpleVariant("Format", [
+    /* String_literal */
+    Block.variant("String_literal", 11, [" (at ",
+    /* Float */
+    Block.variant("Float", 8, [
+    /* Float_f */
+    0,
+    /* Lit_padding */
+    Block.variant("Lit_padding", 0, [
+    /* Right */
+    1, 0]),
+    /* Lit_precision */
+    Block.simpleVariant("Lit_precision", [1]),
+    /* Char_literal */
+    Block.variant("Char_literal", 12, [
+    /* ")" */
+    41,
+    /* End_of_format */
+    0])])]), " (at %0.1f)"])), c[
+    /* location */
+    0]), undefined,
     /* array */
     []));
-  }, dropWhile$1(songInProgress[
+  }, dropWhile(songInProgress[
   /* song */
   0][
   /* comments */
@@ -25781,16 +34414,27 @@ function renderPlayerOnCurrentSong(currentlyPlaying, send, style) {
   /* array */
   [])), ReasonReact.element(undefined, undefined, Util$Lentil.Text[
   /* make */
-  1]("Position: " + Pervasives.string_of_float(currentlyPlaying[
+  1]("Edit Comment @ Position: " + Curry._1(Format.sprintf(
+  /* Format */
+  Block.simpleVariant("Format", [
+  /* Float */
+  Block.variant("Float", 8, [
+  /* Float_f */
+  0,
+  /* Lit_padding */
+  Block.variant("Lit_padding", 0, [
+  /* Right */
+  1, 0]),
+  /* Lit_precision */
+  Block.simpleVariant("Lit_precision", [1]),
+  /* End_of_format */
+  0]), "%0.1f"])), currentlyPlaying[
   /* prog */
-  1]), undefined,
-  /* array */
-  [])), ReasonReact.element(undefined, undefined, Util$Lentil.Text[
-  /* make */
-  1]("Edit Comment", undefined,
+  1]), "bold",
   /* array */
   [])), React.createElement("textarea", {
-    cols: 80,
+    className: "comment-entry",
+    cols: 60,
     rows: 5,
     value: t,
     onChange: function onChange(ev) {
@@ -25842,9 +34486,10 @@ function renderSong(song, currentlyPlaying, send) {
 }
 
 var demoRenderSongNotCurrent = renderSong(Song$Lentil.example, undefined, Song$Lentil.ignore);
-var demoRenderSongCurrent = renderSong(Song$Lentil.example,
+var demoCurrentlyPlaying =
 /* record */
-Block.record(["song", "prog", "text"], [Song$Lentil.example, 3.3, "Editing comment ..."]), Song$Lentil.ignore);
+Block.record(["song", "prog", "text"], [Song$Lentil.example, 13.293, "Editing comment ..."]);
+var demoRenderSongCurrent = renderSong(Song$Lentil.example, demoCurrentlyPlaying, Song$Lentil.ignore);
 
 function renderSongList(songList, currentlyPlaying, send) {
   return $$Array.of_list(List.map(function (s) {
@@ -25852,7 +34497,7 @@ function renderSongList(songList, currentlyPlaying, send) {
   }, songList));
 }
 
-function make$1(initialSongs, _) {
+function make(initialSongs, _) {
   return (
     /* record */
     Block.record(["debugName", "reactClassInternal", "handedOffState", "willReceiveProps", "didMount", "didUpdate", "willUnmount", "willUpdate", "shouldUpdate", "render", "initialState", "retainedProps", "reducer", "jsElementWrapped"], [component[
@@ -26054,17 +34699,17 @@ exports.Player = Player;
 exports.string_of_action = string_of_action;
 exports.component = component;
 exports.addFeedbackToSong = addFeedbackToSong;
-exports.CommentsRoll = CommentsRoll;
-exports.dropWhile = dropWhile$1;
+exports.dropWhile = dropWhile;
 exports.renderCommentsRoll = renderCommentsRoll;
 exports.renderPlayerOnCurrentSong = renderPlayerOnCurrentSong;
 exports.renderSong = renderSong;
 exports.demoRenderSongNotCurrent = demoRenderSongNotCurrent;
+exports.demoCurrentlyPlaying = demoCurrentlyPlaying;
 exports.demoRenderSongCurrent = demoRenderSongCurrent;
 exports.renderSongList = renderSongList;
-exports.make = make$1;
+exports.make = make;
 /*  Not a pure module */
-},{"bs-platform/lib/js/list.js":"../node_modules/bs-platform/lib/js/list.js","bs-platform/lib/js/array.js":"../node_modules/bs-platform/lib/js/array.js","bs-platform/lib/js/block.js":"../node_modules/bs-platform/lib/js/block.js","bs-platform/lib/js/curry.js":"../node_modules/bs-platform/lib/js/curry.js","react":"../node_modules/react/index.js","bs-platform/lib/js/belt_List.js":"../node_modules/bs-platform/lib/js/belt_List.js","bs-platform/lib/js/belt_Debug.js":"../node_modules/bs-platform/lib/js/belt_Debug.js","bs-platform/lib/js/pervasives.js":"../node_modules/bs-platform/lib/js/pervasives.js","reason-react/src/ReasonReact.js":"../node_modules/reason-react/src/ReasonReact.js","./Song.bs.js":"Song.bs.js","./Util.bs.js":"Util.bs.js","./Styles.bs.js":"Styles.bs.js","bs-platform/lib/js/caml_primitive.js":"../node_modules/bs-platform/lib/js/caml_primitive.js","re-react-player/src/Player.bs.js":"../node_modules/re-react-player/src/Player.bs.js"}],"../node_modules/fbjs/lib/ExecutionEnvironment.js":[function(require,module,exports) {
+},{"bs-platform/lib/js/list.js":"../node_modules/bs-platform/lib/js/list.js","bs-platform/lib/js/array.js":"../node_modules/bs-platform/lib/js/array.js","bs-platform/lib/js/block.js":"../node_modules/bs-platform/lib/js/block.js","bs-platform/lib/js/curry.js":"../node_modules/bs-platform/lib/js/curry.js","react":"../node_modules/react/index.js","bs-platform/lib/js/format.js":"../node_modules/bs-platform/lib/js/format.js","bs-platform/lib/js/belt_List.js":"../node_modules/bs-platform/lib/js/belt_List.js","bs-platform/lib/js/belt_Debug.js":"../node_modules/bs-platform/lib/js/belt_Debug.js","bs-platform/lib/js/pervasives.js":"../node_modules/bs-platform/lib/js/pervasives.js","reason-react/src/ReasonReact.js":"../node_modules/reason-react/src/ReasonReact.js","./Song.bs.js":"Song.bs.js","./Util.bs.js":"Util.bs.js","./Styles.bs.js":"Styles.bs.js","bs-platform/lib/js/caml_primitive.js":"../node_modules/bs-platform/lib/js/caml_primitive.js","re-react-player/src/Player.bs.js":"../node_modules/re-react-player/src/Player.bs.js"}],"../node_modules/fbjs/lib/ExecutionEnvironment.js":[function(require,module,exports) {
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -44671,7 +53316,39 @@ exports.createElementVariadic = createElementVariadic;
 exports.Style = Style;
 /* react Not a pure module */
 
-},{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js","bs-platform/lib/js/caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js"}],"Index.re":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js","bs-platform/lib/js/caml_builtin_exceptions.js":"../node_modules/bs-platform/lib/js/caml_builtin_exceptions.js"}],"AppDemo.bs.js":[function(require,module,exports) {
+'use strict';
+
+var Block = require("bs-platform/lib/js/block.js");
+
+var App$Lentil = require("./App.bs.js");
+
+var Belt_Debug = require("bs-platform/lib/js/belt_Debug.js");
+
+var Song$Lentil = require("./Song.bs.js");
+
+Belt_Debug.setupChromeDebugger(
+/* () */
+0);
+var initialSongs_001 =
+/* :: */
+Block.simpleVariant("::", [
+/* record */
+Block.record(["id", "title", "artist", "url", "comments"], [3, "Sunday Morning", "Maroon 5", "https://soundcloud.com/maroon-5/sunday-morning", 0]),
+/* :: */
+Block.simpleVariant("::", [
+/* record */
+Block.record(["id", "title", "artist", "url", "comments"], [4, "Payphone", "Maroon 5", "https://soundcloud.com/maroon-5/payphone-clean", 0]),
+/* [] */
+0])]);
+var initialSongs =
+/* :: */
+Block.simpleVariant("::", [Song$Lentil.example, initialSongs_001]);
+var example = App$Lentil.renderSongList(initialSongs, App$Lentil.demoCurrentlyPlaying, Song$Lentil.ignore);
+exports.initialSongs = initialSongs;
+exports.example = example;
+/*  Not a pure module */
+},{"bs-platform/lib/js/block.js":"../node_modules/bs-platform/lib/js/block.js","./App.bs.js":"App.bs.js","bs-platform/lib/js/belt_Debug.js":"../node_modules/bs-platform/lib/js/belt_Debug.js","./Song.bs.js":"Song.bs.js"}],"Index.re":[function(require,module,exports) {
 'use strict';
 
 var App$Lentil = require("./App.bs.js");
@@ -44680,12 +53357,18 @@ var Belt_Debug = require("bs-platform/lib/js/belt_Debug.js");
 
 var ReactDOMRe = require("reason-react/src/ReactDOMRe.js");
 
+var ReasonReact = require("reason-react/src/ReasonReact.js");
+
+var AppDemo$Lentil = require("./AppDemo.bs.js");
+
 Belt_Debug.setupChromeDebugger(
 /* () */
 0);
-ReactDOMRe.renderToElementWithId(App$Lentil.demoRenderSongCurrent, "target");
+ReactDOMRe.renderToElementWithId(ReasonReact.element(undefined, undefined, App$Lentil.make(AppDemo$Lentil.initialSongs,
+/* array */
+[])), "target");
 /*  Not a pure module */
-},{"./App.bs.js":"App.bs.js","bs-platform/lib/js/belt_Debug.js":"../node_modules/bs-platform/lib/js/belt_Debug.js","reason-react/src/ReactDOMRe.js":"../node_modules/reason-react/src/ReactDOMRe.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./App.bs.js":"App.bs.js","bs-platform/lib/js/belt_Debug.js":"../node_modules/bs-platform/lib/js/belt_Debug.js","reason-react/src/ReactDOMRe.js":"../node_modules/reason-react/src/ReactDOMRe.js","reason-react/src/ReasonReact.js":"../node_modules/reason-react/src/ReasonReact.js","./AppDemo.bs.js":"AppDemo.bs.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -44712,7 +53395,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65351" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49528" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

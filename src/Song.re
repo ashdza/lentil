@@ -49,7 +49,10 @@ let example: Types.song = {
   title: "Young and Beautiful Love",
   artist: "Ashley D'Souza",
   url: "https://soundcloud.com/ashley-dsouza-106423765/young-and-beautiful-love",
-  comments: [],
+  comments: [
+    {location: 23.3, comment: "Nice!"},
+    {location: 100.1, comment: "Louder, please"},
+  ],
 };
 
 let demoSongHeader = renderSongHeader(example, ignore, "");

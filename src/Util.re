@@ -3,13 +3,15 @@
 let str = ReasonReact.string;
 
 let tap = x => {
-  Js.log(x);
+  Js.log({j|Tap: $(x)|j});
   x;
 };
-let tap2 = (x, y) => {
-  Js.log2(x, y);
+
+let tap2 = (x: string, y) => {
+  Js.log2(x, {j|Tap: $(y)|j});
   y;
 };
+
 let tap3 = (x, y, z) => {
   Js.log3(x, y, z);
   z;
