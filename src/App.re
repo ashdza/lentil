@@ -2,6 +2,12 @@
 
 open Types;
 
+/* App is the top-level Lentil component */
+/* App is a Reason-React stateful component, built as a ReasonML module (file). */
+/* Its set of actions is defined by Types.action */
+/* Its state is defined by Types.state */
+/* It uses an initial list of songs to build its initialState */
+
 let component = ReasonReact.reducerComponent("App");
 
 let make = (~initialSongs: list(song), _children) => {
@@ -57,9 +63,7 @@ let make = (~initialSongs: list(song), _children) => {
     },
   render: self =>
     <div className="app">
-      <div className=Styles.(appTitle ++ " app-header bold")>
-        (Util.str("Lentil"))
-      </div>
+      <div className="app-header"> (Util.str("Lentil")) </div>
       <div className="app-menu">
         <Util.Text label="MENU" />
         <Util.Text label="Performer" />

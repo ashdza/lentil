@@ -1,5 +1,7 @@
 [%%debugger.chrome];
 
+/* This is the entry point for the page generated. Multiple demo pages available. */
+
 module Demo = Song.Demo;
 
 /* ReactDOMRe.renderToElementWithId(Demo.demoSongHeader, "target"); */

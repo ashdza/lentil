@@ -1,27 +1,21 @@
-# lentl
+# lentil
 
 A musician's feedback service.
+
+## Demo
+
+I keep a running demo of a fairly current version of this app at 
+https://lentil.7insights.com. The current version uses an existing React component over SoundCloud for the audio player, and when paused, the player will sometimes overlay some kind of ad. You need to close out that overlay to continue with the player.
+
+## Overview
+
+Musicians submit recordings of performances and receive pointed feedback from other musicians. I am implementing the front-end of this service with ReasonML + React, and will use Hasura's GraphQL server with a Postgres database for the back-end.
+
+I keep some notes on this project on my blog at https://ashdza.github.io/blog/.
 
 ## Run Project
 
 ```sh
 npm install
 npm start
-# in another tab
-npm run webpack
 ```
-
-After you see the webpack compilation succeed (the `npm run webpack` step), open up `src/index.html` (**no server needed!**). Then modify whichever `.re` file in `src` and refresh the page to see the changes.
-
-**For more elaborate ReasonReact examples**, please see https://github.com/reasonml-community/reason-react-example
-
-## Build for Production
-
-```sh
-npm run build
-npm run webpack:production
-```
-
-This will replace the development artifact `build/Index.js` for an optimized version.
-
-**To enable dead code elimination**, change `bsconfig.json`'s `package-specs` `module` from `"commonjs"` to `"es6"`. Then re-run the above 2 commands. This will allow Webpack to remove unused code.

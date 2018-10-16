@@ -4,19 +4,19 @@ open Types;
 
 module Player = ReReactPlayer.Player;
 
+/* render header with an onSelect function */
 let renderSongHeader = (song: song, onSelect, style) =>
   <div className=style>
-    <div
-      className=(Styles.title ++ " " ++ Styles.clickable)
-      onClick=(_e => onSelect(song))>
+    <div className="song-title clickable" onClick=(_e => onSelect(song))>
       (Util.str(song.title))
     </div>
-    <div className=Styles.artist> (Util.str(song.artist)) </div>
-    <div className=Styles.comments>
+    <div className="song-artist"> (Util.str(song.artist)) </div>
+    <div className="comments">
       (Util.str("Comments: " ++ string_of_int(List.length(song.comments))))
     </div>
   </div>;
 
+/* render list of comments for in-progress song, using current position */
 let renderCommentsRoll = (songInProgress: songInProgress, style) =>
   <div className=style>
     <Util.Text label="Comments (auto-highlight):" style="bold" />
@@ -40,6 +40,9 @@ let renderCommentsRoll = (songInProgress: songInProgress, style) =>
     )
   </div>;
 
+/* render the audio-player + comment-editor on in-progress song.
+   Takes a send action for the 3 messages:
+   UpdateProgress, TextChange, and LeaveComment */
 let renderPlayerOnCurrentSong =
     (currentlyPlaying, send: action => unit, style) => {
   let {song: s, prog: p, text: t} = currentlyPlaying;
@@ -68,6 +71,7 @@ let renderPlayerOnCurrentSong =
   </div>;
 };
 
+/* Given song + another in-progress song, render appropriately */
 let renderSong = (song: Types.song, currentlyPlaying, send: action => unit) => {
   let header = renderSongHeader(song, s => send(Select(s)), "song-header");
   let (player, scroll) =
@@ -81,11 +85,13 @@ let renderSong = (song: Types.song, currentlyPlaying, send: action => unit) => {
   <div className="song-grid"> header player scroll </div>;
 };
 
+/* render a list of songs, one (or none) of which is currently playing */
 let renderSongList = (songList, currentlyPlaying, send) =>
   List.map(s => renderSong(s, currentlyPlaying, send), songList)
   |> Array.of_list
   |> ReasonReact.array;
 
+/* update a song with new feedback at some location */
 let addFeedbackToSong = (comment, loc, song: Types.song) => {
   let c: Types.feedback = {location: loc, comment};
   let compareComments = (c1: Types.feedback, c2: Types.feedback) =>
@@ -96,7 +102,7 @@ let addFeedbackToSong = (comment, loc, song: Types.song) => {
   };
 };
 
-
+/* Demo-able stateless renders. State / reducer React component is at App level */
 module Demo = {
   let exampleSong: song = {
     id: 1,
@@ -123,25 +129,24 @@ module Demo = {
   let demoRenderSongCurrent =
     renderSong(exampleSong, songCurrentlyPlaying, Util.ignore);
 
-    let initialSongs: list(song) = [
-      exampleSong,
-      {
-        id: 3,
-        title: "Sunday Morning",
-        artist: "Maroon 5",
-        url: "https://soundcloud.com/maroon-5/sunday-morning",
-        comments: [],
-      },
-      {
-        id: 4,
-        title: "Payphone",
-        artist: "Maroon 5",
-        url: "https://soundcloud.com/maroon-5/payphone-clean",
-        comments: [],
-      },
-    ];
-    
-    let demoRenderSongList =
-      renderSongList(initialSongs, songCurrentlyPlaying, Util.ignore);
-    
+  let initialSongs: list(song) = [
+    exampleSong,
+    {
+      id: 3,
+      title: "Sunday Morning",
+      artist: "Maroon 5",
+      url: "https://soundcloud.com/maroon-5/sunday-morning",
+      comments: [],
+    },
+    {
+      id: 4,
+      title: "Payphone",
+      artist: "Maroon 5",
+      url: "https://soundcloud.com/maroon-5/payphone-clean",
+      comments: [],
+    },
+  ];
+
+  let demoRenderSongList =
+    renderSongList(initialSongs, songCurrentlyPlaying, Util.ignore);
 };

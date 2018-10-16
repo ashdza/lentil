@@ -10,7 +10,13 @@
         "menu       contents";
 }
 
-.app-header {grid-area: header; text-align: center }
+.app-header {
+    grid-area: header; 
+    text-align: center;
+    font-size: 1.5rem; 
+    font-weight: bold;
+    color: darkgray;
+}
 .app-menu {grid-area: menu}
 .app-contents {grid-area: contents}
 
@@ -40,21 +46,20 @@
 
 }
 
-.artist { 
+.song-artist { 
     background-color: linen;
     align-items: center; 
 }
 
-.title  { 
+.song-title  { 
     background-color: papayawhip;
     align-items: center; 
+    font-size: 1em;
 }
 
 .clickable { cursor: pointer; }
 
 .song-player { grid-area: song-player; }
-
-.song-editor {    grid-area: song-editor;}
 
 .song-comments {    grid-area: song-comments;}
 
@@ -63,6 +68,8 @@
 .highlight { background-color: papayawhip; }
 
 .comment-entry { font-size: 1.0em; }
+
+.comments {align-items: center; }
 
 body { margin: 5px; }
 

@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "scripts": {
     "start": "parcel src/index.html",
-    "clean": "bsb -clean-world && rm -rf dist/*"
+    "clean": "bsb -clean-world && rm -rf dist",
+    "deploy": "now --public dist && now alias"
   },
   "keywords": [
     "BuckleScript"

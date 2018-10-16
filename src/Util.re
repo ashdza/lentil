@@ -12,10 +12,12 @@ let tap2 = (x: string, y) => {
   y;
 };
 
+/* useful default do-nothing args for some functions */
 let ignoreRender = _ => ReasonReact.null;
 
 let ignore = _ => ();
 
+/* Convenient <Button label="Ok"/> */
 module Button = {
   let component = ReasonReact.statelessComponent("Button");
 
@@ -25,15 +27,17 @@ module Button = {
   };
 };
 
+/* Convenient <Text label="Hello"/> */
 module Text = {
   let component = ReasonReact.statelessComponent("Text");
 
-  let make = (~label, ~style=Styles.none, _children) => {
+  let make = (~label, ~style="", _children) => {
     ...component,
     render: _self => <div className=style> (str(label)) </div>,
   };
 };
 
+/* drop x from front of list as long as pred(x) is true */
 let rec dropWhile = (list, pred) =>
   switch (list) {
   | [] => []

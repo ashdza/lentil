@@ -23,11 +23,13 @@ type songInProgress = {
   text: string,
 };
 
+/* App-level state */
 type state = {
   songList: list(song),
   current: option(songInProgress),
 };
 
+/* App-level actions */
 type action =
   | Select(song)
   | UpdateProgress(float)
