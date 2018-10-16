@@ -81,3 +81,9 @@ let make = (~initialSongs: list(song), _children) => {
       </div>
     </div>,
 };
+
+module Demo = {
+  let demoApp =
+    ReasonReact.element(make(~initialSongs=Song.Demo.initialSongs, [||]));
+  /* equivalent to: <App initialSongs=Song.Demo.initialSongs /> */
+};

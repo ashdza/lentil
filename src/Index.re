@@ -1,18 +1,15 @@
 [%%debugger.chrome];
 
-/* This is the entry point for the page generated. Multiple demo pages available. */
+/* This is the entry point for the demo-page generated. Multiple demo-pages available. */
 
-module Demo = Song.Demo;
+let renderToElementWithId = ReactDOMRe.renderToElementWithId;
 
-/* ReactDOMRe.renderToElementWithId(Demo.demoSongHeader, "target"); */
+/* renderToElementWithId(Song.Demo.demoSongHeader, "target"); */
 
-/* ReactDOMRe.renderToElementWithId(Demo.demoRenderSongNotCurrent, "target"); */
+/* renderToElementWithId(Song.Demo.demoRenderSongNotCurrent, "target"); */
 
-/* ReactDOMRe.renderToElementWithId(Demo.demoRenderSongCurrent, "target"); */
+/* renderToElementWithId(Song.Demo.demoRenderSongCurrent, "target"); */
 
-/* ReactDOMRe.renderToElementWithId(Demo.demoRenderSongList, "target"); */
+/* renderToElementWithId(Demo.demoRenderSongList, "target"); */
 
-ReactDOMRe.renderToElementWithId(
-  <App initialSongs=Song.Demo.initialSongs />,
-  "target",
-);
+renderToElementWithId(App.Demo.demoApp, "target");

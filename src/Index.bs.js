@@ -3,14 +3,12 @@
 var App$Lentil = require("./App.bs.js");
 var Belt_Debug = require("bs-platform/lib/js/belt_Debug.js");
 var ReactDOMRe = require("reason-react/src/ReactDOMRe.js");
-var ReasonReact = require("reason-react/src/ReasonReact.js");
-var Song$Lentil = require("./Song.bs.js");
 
 Belt_Debug.setupChromeDebugger(/* () */0);
 
-ReactDOMRe.renderToElementWithId(ReasonReact.element(undefined, undefined, App$Lentil.make(Song$Lentil.Demo[/* initialSongs */5], /* array */[])), "target");
+ReactDOMRe.renderToElementWithId(App$Lentil.Demo[/* demoApp */0], "target");
 
-var Demo = 0;
+var renderToElementWithId = ReactDOMRe.renderToElementWithId;
 
-exports.Demo = Demo;
+exports.renderToElementWithId = renderToElementWithId;
 /*  Not a pure module */

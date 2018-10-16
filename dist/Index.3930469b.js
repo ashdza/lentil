@@ -27118,8 +27118,17 @@ function make(initialSongs, _) {
   );
 }
 
+var demoApp = ReasonReact.element(undefined, undefined, make(Song$Lentil.Demo[
+/* initialSongs */
+5],
+/* array */
+[]));
+var Demo =
+/* module */
+Block.localModule(["demoApp"], [demoApp]);
 exports.component = component;
 exports.make = make;
+exports.Demo = Demo;
 /*  Not a pure module */
 },{"bs-platform/lib/js/list.js":"../node_modules/bs-platform/lib/js/list.js","bs-platform/lib/js/block.js":"../node_modules/bs-platform/lib/js/block.js","react":"../node_modules/react/index.js","bs-platform/lib/js/belt_Debug.js":"../node_modules/bs-platform/lib/js/belt_Debug.js","reason-react/src/ReasonReact.js":"../node_modules/reason-react/src/ReasonReact.js","./Song.bs.js":"Song.bs.js","./Util.bs.js":"Util.bs.js"}],"../node_modules/fbjs/lib/ExecutionEnvironment.js":[function(require,module,exports) {
 /**
@@ -45873,22 +45882,16 @@ var Belt_Debug = require("bs-platform/lib/js/belt_Debug.js");
 
 var ReactDOMRe = require("reason-react/src/ReactDOMRe.js");
 
-var ReasonReact = require("reason-react/src/ReasonReact.js");
-
-var Song$Lentil = require("./Song.bs.js");
-
 Belt_Debug.setupChromeDebugger(
 /* () */
 0);
-ReactDOMRe.renderToElementWithId(ReasonReact.element(undefined, undefined, App$Lentil.make(Song$Lentil.Demo[
-/* initialSongs */
-5],
-/* array */
-[])), "target");
-var Demo = 0;
-exports.Demo = Demo;
+ReactDOMRe.renderToElementWithId(App$Lentil.Demo[
+/* demoApp */
+0], "target");
+var renderToElementWithId = ReactDOMRe.renderToElementWithId;
+exports.renderToElementWithId = renderToElementWithId;
 /*  Not a pure module */
-},{"./App.bs.js":"App.bs.js","bs-platform/lib/js/belt_Debug.js":"../node_modules/bs-platform/lib/js/belt_Debug.js","reason-react/src/ReactDOMRe.js":"../node_modules/reason-react/src/ReactDOMRe.js","reason-react/src/ReasonReact.js":"../node_modules/reason-react/src/ReasonReact.js","./Song.bs.js":"Song.bs.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./App.bs.js":"App.bs.js","bs-platform/lib/js/belt_Debug.js":"../node_modules/bs-platform/lib/js/belt_Debug.js","reason-react/src/ReactDOMRe.js":"../node_modules/reason-react/src/ReactDOMRe.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -45915,7 +45918,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56116" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57117" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
