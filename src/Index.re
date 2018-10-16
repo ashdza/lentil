@@ -1,14 +1,16 @@
 [%%debugger.chrome];
 
-/* ReactDOMRe.renderToElementWithId(Song.demoSongHeader, "target"); */
+module Demo = Song.Demo;
 
-/* ReactDOMRe.renderToElementWithId(App.demoRenderSongNotCurrent, "target"); */
+/* ReactDOMRe.renderToElementWithId(Demo.demoSongHeader, "target"); */
 
-/* ReactDOMRe.renderToElementWithId(App.demoRenderSongCurrent, "target"); */
+/* ReactDOMRe.renderToElementWithId(Demo.demoRenderSongNotCurrent, "target"); */
 
-/* ReactDOMRe.renderToElementWithId(AppDemo.example, "target"); */
+/* ReactDOMRe.renderToElementWithId(Demo.demoRenderSongCurrent, "target"); */
+
+/* ReactDOMRe.renderToElementWithId(Demo.demoRenderSongList, "target"); */
 
 ReactDOMRe.renderToElementWithId(
-  <App initialSongs=AppDemo.initialSongs />,
+  <App initialSongs=Song.Demo.initialSongs />,
   "target",
 );

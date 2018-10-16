@@ -1,23 +1,20 @@
-[%%debugger.chrome];
-
 let str = ReasonReact.string;
 
+let show = x => {j|$(x)|j};
+
 let tap = x => {
-  Js.log({j|Tap: $(x)|j});
+  Js.log(show(x));
   x;
 };
 
 let tap2 = (x: string, y) => {
-  Js.log2(x, {j|Tap: $(y)|j});
+  Js.log2(x, show(y));
   y;
 };
 
-let tap3 = (x, y, z) => {
-  Js.log3(x, y, z);
-  z;
-};
-
 let ignoreRender = _ => ReasonReact.null;
+
+let ignore = _ => ();
 
 module Button = {
   let component = ReasonReact.statelessComponent("Button");
@@ -37,18 +34,25 @@ module Text = {
   };
 };
 
-/* Experiments */
+let rec dropWhile = (list, pred) =>
+  switch (list) {
+  | [] => []
+  | [h, ...tl] => ! pred(h) ? list : dropWhile(tl, pred)
+  };
 
-/* literal in JSX */
+/* Experiments making HTML/ReasonReact.elements with just functions, minimal modules or component */
+/* Cannot be used for a "reducer" component i.e. with internal state beyond its input params */
+
+/* Reason string inside JSX syntax */
 let a = s => <div> (str(s)) </div>;
 
 /* syntactic JSX in JSX */
-let a1 = <div> <div /> </div>;
+let a1 = <div> <button /> </div>;
 
-/* syntactic code expressions (mixed with JSX) in JSX */
-let b = (s1, s2) => <div> <div /> (a(s1)) (a(s2)) </div>;
+/* syntactic Reason expressions in JSX */
+let b = (s1, s2) => <div> (a(s1)) (a(s2)) </div>;
 
-/* syntactic array in JSX must be ...spread */
+/* syntactic array in JSX must use ...spread */
 let c = (s1, s2) => <div> ...[|a(s1), a(s2)|] </div>;
 
 /* list must be |> Array.of_list |> ReasonReact.array */

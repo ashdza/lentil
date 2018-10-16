@@ -17,4 +17,19 @@ type song = {
   comments: list(feedback),
 };
 
-type songList = list(song);
+type songInProgress = {
+  song,
+  prog: float,
+  text: string,
+};
+
+type state = {
+  songList: list(song),
+  current: option(songInProgress),
+};
+
+type action =
+  | Select(song)
+  | UpdateProgress(float)
+  | LeaveComment
+  | TextChange(string);

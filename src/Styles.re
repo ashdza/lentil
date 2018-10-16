@@ -24,7 +24,3 @@ let artist = style([backgroundColor(linen), alignItems(`center)]);
 let playerEditor = style([gridColumnStart(1), gridColumnEnd(3)]);
 
 let comments = style([alignItems(`center)]);
-
-global("body", [margin(px(5))]);
-
-global("div", [margin(px(5))]);
