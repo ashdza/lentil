@@ -47,6 +47,10 @@ let renderPlayerOnCurrentSong =
     (currentlyPlaying, send: action => unit, style) => {
   let {song: s, prog: p, text: t} = currentlyPlaying;
   <div className=style>
+    <Util.Text
+      style="italic"
+      label="If a SoundCloud Ad blocks Play/Pause, click 'X' to close the Ad."
+    />
     <Player
       url=s.url
       onProgress=((progress: Player.secs) => send(UpdateProgress(progress)))
