@@ -12,37 +12,43 @@ let component = ReasonReact.reducerComponent("App");
 
 let make = (~initialSongs: list(song), _children) => {
   ...component,
-  initialState: () => {songList: initialSongs, current: None},
+  initialState: () => {songList: initialSongs, playing: None},
   reducer: (action: action, state: state) =>
     /* Js.log(string_of_action(action)); */
     switch (action, state) {
     | (Select(newSong), _) =>
       ReasonReact.Update({
         ...state,
-        current: Some({song: newSong, prog: 0.0, text: ""}),
+        playing: Some({song: newSong, position: 0.0, enteredText: ""}),
       })
     | (
-        UpdateProgress(playedSec),
-        {songList: _sl, current: Some({song: s, prog: _p, text: t})},
+        UpdatePosition(playedSec),
+        {
+          songList: _sl,
+          playing: Some({song: s, position: _p, enteredText: t}),
+        },
       ) =>
       /* Js.log2("UpdateProgress: ", playedSec); */
       ReasonReact.Update({
         ...state,
-        current: Some({song: s, prog: playedSec, text: t}),
+        playing: Some({song: s, position: playedSec, enteredText: t}),
       })
-    | (UpdateProgress(_), _) =>
+    | (UpdatePosition(_), _) =>
       Js.log("ERROR: UPDATE PROGRESS WHILE NO SONG PLAYING");
       ReasonReact.NoUpdate;
     | (
         LeaveComment,
-        {songList: sl, current: Some({song: s, prog: p, text: txt})},
+        {
+          songList: sl,
+          playing: Some({song: s, position: p, enteredText: txt}),
+        },
       ) =>
       /* Js.log4("LeaveComment: ", s.title, txt, p); */
       let updatedSong = Song.addFeedbackToSong(txt, p, s);
       let updatedState = {
         songList:
           List.map((s': song) => s'.id == s.id ? updatedSong : s', sl),
-        current: Some({song: updatedSong, prog: p, text: ""}),
+        playing: Some({song: updatedSong, position: p, enteredText: ""}),
       };
       /* Js.log2("Updated State: ", updatedState); */
       ReasonReact.Update(updatedState);
@@ -50,14 +56,17 @@ let make = (~initialSongs: list(song), _children) => {
       Js.log("ERROR: LEAVE COMMENT WHILE NO SONG PLAYING");
       ReasonReact.NoUpdate;
     | (
-        TextChange(txt),
-        {songList: _sl, current: Some({song: s, prog: p, text: _t})},
+        CommentTextChange(txt),
+        {
+          songList: _sl,
+          playing: Some({song: s, position: p, enteredText: _t}),
+        },
       ) =>
       ReasonReact.Update({
         ...state,
-        current: Some({song: s, prog: p, text: txt}),
+        playing: Some({song: s, position: p, enteredText: txt}),
       })
-    | (TextChange(_), _) =>
+    | (CommentTextChange(_), _) =>
       Js.log("ERROR: ENTER TEXT WHEN NO SONG PLAYING");
       ReasonReact.NoUpdate;
     },
@@ -80,7 +89,7 @@ let make = (~initialSongs: list(song), _children) => {
         (
           Song.renderSongList(
             self.state.songList,
-            self.state.current,
+            self.state.playing,
             self.send,
           )
         )

@@ -1,12 +1,10 @@
 [%%debugger.chrome];
 
-type comment = string;
+type commentLocation = float;
 
-type feedbackLocation = float;
-
-type feedback = {
-  location: feedbackLocation,
-  comment,
+type comment = {
+  location: commentLocation,
+  content: string,
 };
 
 type song = {
@@ -14,24 +12,24 @@ type song = {
   title: string,
   artist: string,
   url: string,
-  comments: list(feedback),
+  feedback: list(comment),
 };
 
 type songInProgress = {
   song,
-  prog: float,
-  text: string,
+  position: float,
+  enteredText: string,
 };
 
 /* App-level state */
 type state = {
   songList: list(song),
-  current: option(songInProgress),
+  playing: option(songInProgress),
 };
 
 /* App-level actions */
 type action =
   | Select(song)
-  | UpdateProgress(float)
+  | UpdatePosition(float)
   | LeaveComment
-  | TextChange(string);
+  | CommentTextChange(string);
