@@ -1,12 +1,12 @@
 'use strict';
 
-var App$Lentil = require("./App.bs.js");
+var App = require("./App.bs.js");
 var Belt_Debug = require("bs-platform/lib/js/belt_Debug.js");
 var ReactDOMRe = require("reason-react/src/ReactDOMRe.js");
 
 Belt_Debug.setupChromeDebugger(/* () */0);
 
-ReactDOMRe.renderToElementWithId(App$Lentil.Demo[/* demoApp */0], "target");
+ReactDOMRe.renderToElementWithId(App.Demo[/* demoApp */0], "target");
 
 var renderToElementWithId = ReactDOMRe.renderToElementWithId;
 

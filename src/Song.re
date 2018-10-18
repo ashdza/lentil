@@ -77,7 +77,7 @@ let renderPlayerOnCurrentSong =
   </div>;
 };
 
-/* Given song + another in-progress song, render appropriately */
+/* Given song + in-progress option(song), render song appropriately */
 let renderSong = (song: Types.song, currentlyPlaying, send: action => unit) => {
   let header = renderSongHeader(song, s => send(Select(s)), "song-header");
   let (player, scroll) =

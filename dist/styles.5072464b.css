@@ -1,0 +1,115 @@
+/* ********** App-level grid and style ********** */
+
+.app {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-gap: 3px;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "header     header" "menu       contents";
+}
+
+.app-header {
+    grid-area: header;
+    text-align: center;
+    color: gray;
+}
+
+.app-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-variant: small-caps;
+}
+
+.app-subtitle {
+    font-size: 0.8rem;
+    font-weight: normal;
+    margin-top: -10px;
+}
+
+.app-menu {
+    grid-area: menu;
+    padding: 10px;
+}
+
+.app-contents {
+    grid-area: contents
+}
+
+/* ********** Song-level grid and style ********** */
+
+.song-grid {
+    height: 100%;
+    display: grid;
+    grid-gap: 3px;
+    margin-bottom: 10px;
+    grid-template-columns: 1.7fr 1fr;
+    grid-template-rows: auto auto;
+    background-color: lightgrey;
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.6);
+    grid-template-areas: "song-header    song-comments" "song-player    song-comments";
+}
+
+.song-header {
+    grid-area: song-header;
+    display: grid;
+    grid-template-columns: 3fr 3fr 2fr;
+    grid-template-rows: auto auto auto;
+    background-color: lightgrey;
+    /* box-shadow: 0px 3px 5px rgba(0,0,0,0.6); */
+}
+
+.song-artist {
+    background-color: linen;
+    align-items: center;
+    padding-left: 5px;
+}
+
+.song-title {
+    background-color: papayawhip;
+    align-items: center;
+    padding-left: 5px;
+}
+
+.song-player {
+    grid-area: song-player;
+}
+
+.song-comments {
+    grid-area: song-comments;
+}
+
+.comment-entry {
+    font-size: 1.0em;
+}
+
+.comments {
+    align-items: center;
+}
+
+/* ********** Misc ********** */
+
+.clickable {
+    cursor: pointer;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.italic {
+    font-style: italic;
+}
+
+.highlight {
+    background-color: papayawhip;
+}
+
+body {
+    margin: 5px;
+}
+
+div {
+    margin: 5px;
+}
