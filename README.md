@@ -7,7 +7,7 @@ A musician's feedback service.
 Musicians submit recordings of performances and receive pointed feedback from other musicians. I am implementing the front-end of this service with ReasonML + React, and will use Hasura's GraphQL server with a Postgres database for the back-end.
 
 The core idea is summarized by this interaction:
-![](https://ashdza.github.io/blog/2018/07/02/Lentil-scenario-1/sequence-diagram.png)
+![](src/assets/images/sequence-diagram.png)
 
 I keep some notes on this project on my blog at https://ashdza.github.io/blog/.
 
