@@ -26673,57 +26673,66 @@ function renderSongHeader(song, onSelect, style) {
   4])))));
 }
 
+function withinDelta(a, b, delta) {
+  return Math.abs(a - b) <= delta;
+}
+
 function renderCommentsRoll(songInProgress, style) {
   return React.createElement("div", {
     className: style
   }, ReasonReact.element(undefined, undefined, Util.Text[
   /* make */
-  1]("Comments (auto-highlight):", "bold",
+  1]("Comment", "bold",
   /* array */
-  [])), $$Array.of_list(List.map(function (c) {
-    var match = c[
+  [])), ReasonReact.element(undefined, undefined, Util.Text[
+  /* make */
+  1]("Loc", "bold",
+  /* array */
+  [])), $$Array.of_list(Belt_List.flatten(List.map(function (c) {
+    var match = withinDelta(c[
     /* location */
-    0] >= songInProgress[
+    0], songInProgress[
     /* position */
-    1] - 2.0 && c[
-    /* location */
-    0] <= songInProgress[
-    /* position */
-    1] + 2.0;
-    return ReasonReact.element(undefined, undefined, Util.Text[
-    /* make */
-    1](c[
-    /* content */
-    1] + Curry._1(Format.sprintf(
-    /* Format */
-    Block.simpleVariant("Format", [
-    /* String_literal */
-    Block.variant("String_literal", 11, [" (at ",
-    /* Float */
-    Block.variant("Float", 8, [
-    /* Float_f */
-    0,
-    /* Lit_padding */
-    Block.variant("Lit_padding", 0, [
-    /* Right */
-    1, 0]),
-    /* Lit_precision */
-    Block.simpleVariant("Lit_precision", [1]),
-    /* Char_literal */
-    Block.variant("Char_literal", 12, [
-    /* ")" */
-    41,
-    /* End_of_format */
-    0])])]), " (at %0.1f)"])), c[
-    /* location */
-    0]), match ? "comment highlight" : "comment",
-    /* array */
-    []));
+    1], 2.0);
+    return (
+      /* :: */
+      Block.simpleVariant("::", [ReasonReact.element(undefined, undefined, Util.Text[
+      /* make */
+      1](c[
+      /* content */
+      1], match ? "comment highlight" : "comment",
+      /* array */
+      [])),
+      /* :: */
+      Block.simpleVariant("::", [ReasonReact.element(undefined, undefined, Util.Text[
+      /* make */
+      1](Curry._1(Format.sprintf(
+      /* Format */
+      Block.simpleVariant("Format", [
+      /* Float */
+      Block.variant("Float", 8, [
+      /* Float_f */
+      0,
+      /* Lit_padding */
+      Block.variant("Lit_padding", 0, [
+      /* Right */
+      1, 0]),
+      /* Lit_precision */
+      Block.simpleVariant("Lit_precision", [1]),
+      /* End_of_format */
+      0]), "%0.1f"])), c[
+      /* location */
+      0]), undefined,
+      /* array */
+      [])),
+      /* [] */
+      0])])
+    );
   }, songInProgress[
   /* song */
   0][
   /* feedback */
-  4])));
+  4]))));
 }
 
 function renderPlayerOnCurrentSong(currentlyPlaying, send, style) {
@@ -26896,6 +26905,7 @@ Block.localModule(["exampleSong", "demoSongHeader", "demoRenderSongNotCurrent", 
 var Player = 0;
 exports.Player = Player;
 exports.renderSongHeader = renderSongHeader;
+exports.withinDelta = withinDelta;
 exports.renderCommentsRoll = renderCommentsRoll;
 exports.renderPlayerOnCurrentSong = renderPlayerOnCurrentSong;
 exports.renderSong = renderSong;
@@ -45930,7 +45940,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55208" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52265" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

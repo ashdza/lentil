@@ -7,34 +7,30 @@ module Player = ReReactPlayer.Player;
 /* render header with an onSelect function */
 let renderSongHeader = (song: song, onSelect, style) =>
   <div className=style>
-    <div className="song-title clickable" onClick=(_e => onSelect(song))>
-      (Util.str(song.title))
-    </div>
+    <div className="song-title clickable" onClick=(_e => onSelect(song))> (Util.str(song.title)) </div>
     <div className="song-artist"> (Util.str(song.artist)) </div>
-    <div className="comments">
-      (Util.str("Comments: " ++ string_of_int(List.length(song.feedback))))
-    </div>
+    <div className="comments"> (Util.str("Comments: " ++ string_of_int(List.length(song.feedback)))) </div>
   </div>;
+
+let withinDelta = (a, b, ~delta) => abs_float(a -. b) <= delta;
 
 /* render list of comments for in-progress song, using current position */
 let renderCommentsRoll = (songInProgress: songInProgress, style) =>
   <div className=style>
-    <Util.Text label="Comments (auto-highlight):" style="bold" />
+    <Util.Text label="Comment" style="bold" />
+    <Util.Text label="Loc" style="bold" />
     (
       songInProgress.song.feedback
-      /* |. Util.dropWhile(_c => c.location < songInProgress.prog -. 2.0) */
       |> List.map((c: Types.comment) =>
-           <Util.Text
-             label=(c.content ++ Format.sprintf(" (at %0.1f)", c.location))
-             style=(
-               c.location >= songInProgress.position
-               -. 2.0
-               && c.location <= songInProgress.position
-               +. 2.0 ?
-                 "comment highlight" : "comment"
-             )
-           />
+           [
+             <Util.Text
+               label=c.content
+               style=(withinDelta(c.location, songInProgress.position, ~delta=2.0) ? "comment highlight" : "comment")
+             />,
+             <Util.Text label=(Format.sprintf("%0.1f", c.location)) />,
+           ]
          )
+      |> Belt.List.flatten
       |> Array.of_list
       |> ReasonReact.array
     )
@@ -43,37 +39,20 @@ let renderCommentsRoll = (songInProgress: songInProgress, style) =>
 /* render the audio-player + comment-editor on in-progress song.
    Takes a send action for the 3 messages:
    UpdateProgress, TextChange, and LeaveComment */
-let renderPlayerOnCurrentSong =
-    (currentlyPlaying, send: action => unit, style) => {
+let renderPlayerOnCurrentSong = (currentlyPlaying, send: action => unit, style) => {
   let {song: s, position: p, enteredText: t} = currentlyPlaying;
   <div className=style>
-    <Util.Text
-      style="italic"
-      label="If a SoundCloud Ad blocks Play/Pause, click 'X' to close the Ad."
-    />
-    <Player
-      url=s.url
-      onProgress=((progress: Player.secs) => send(UpdatePosition(progress)))
-      progressInterval=100
-    />
-    <Util.Text
-      label=("Edit Comment @ Position: " ++ Format.sprintf("%0.1f", p))
-      style="bold"
-    />
+    <Util.Text style="italic" label="If a SoundCloud Ad blocks Play/Pause, click 'X' to close the Ad." />
+    <Player url=s.url onProgress=((progress: Player.secs) => send(UpdatePosition(progress))) progressInterval=100 />
+    <Util.Text label=("Edit Comment @ Position: " ++ Format.sprintf("%0.1f", p)) style="bold" />
     <textarea
       className="comment-entry"
       cols=60
       rows=5
       value=t
-      onChange=(
-        ev => send(CommentTextChange(ReactEvent.Form.target(ev)##value))
-      )
+      onChange=(ev => send(CommentTextChange(ReactEvent.Form.target(ev)##value)))
     />
-    <Util.Button
-      label="Submit"
-      onClick=(_event => send(LeaveComment))
-      disabled=(t == "")
-    />
+    <Util.Button label="Submit" onClick=(_event => send(LeaveComment)) disabled=(t == "") />
   </div>;
 };
 
@@ -82,8 +61,7 @@ let renderSong = (song: Types.song, currentlyPlaying, send: action => unit) => {
   let header = renderSongHeader(song, s => send(Select(s)), "song-header");
   let (player, scroll) =
     switch (currentlyPlaying) {
-    | Some({song: s, position: _p, enteredText: _t} as inProgress)
-        when s.id == song.id => (
+    | Some({song: s, position: _p, enteredText: _t} as inProgress) when s.id == song.id => (
         renderPlayerOnCurrentSong(inProgress, send, "song-player"),
         renderCommentsRoll(inProgress, "song-comments"),
       )
@@ -94,19 +72,13 @@ let renderSong = (song: Types.song, currentlyPlaying, send: action => unit) => {
 
 /* render a list of songs, one (or none) of which is currently playing */
 let renderSongList = (songList, currentlyPlaying, send) =>
-  List.map(s => renderSong(s, currentlyPlaying, send), songList)
-  |> Array.of_list
-  |> ReasonReact.array;
+  List.map(s => renderSong(s, currentlyPlaying, send), songList) |> Array.of_list |> ReasonReact.array;
 
 /* update a song with new feedback at some location */
 let addFeedbackToSong = (content, loc, song: Types.song) => {
   let c: Types.comment = {location: loc, content};
-  let compareComments = (c1: Types.comment, c2: Types.comment) =>
-    Pervasives.compare(c1.location, c2.location);
-  {
-    ...song,
-    feedback: Belt.List.add(song.feedback, c) |> List.sort(compareComments),
-  };
+  let compareComments = (c1: Types.comment, c2: Types.comment) => Pervasives.compare(c1.location, c2.location);
+  {...song, feedback: Belt.List.add(song.feedback, c) |> List.sort(compareComments)};
 };
 
 /* Demo-able stateless renders. State / reducer React component is at App level */
@@ -119,10 +91,7 @@ module Demo = {
     feedback: [
       {location: 6.3, content: "Nice gentle piano intro!"},
       {location: 20.1, content: "Lovely, breathy entrance!"},
-      {
-        location: 48.0,
-        content: "Make that first -- \"I\" told my love -- more clear",
-      },
+      {location: 48.0, content: "Make that first -- \"I\" told my love -- more clear"},
     ],
   };
 
@@ -130,15 +99,9 @@ module Demo = {
 
   let demoRenderSongNotCurrent = renderSong(exampleSong, None, Util.ignore);
 
-  let songCurrentlyPlaying =
-    Some({
-      song: exampleSong,
-      position: 13.293,
-      enteredText: "Editing comment ...",
-    });
+  let songCurrentlyPlaying = Some({song: exampleSong, position: 13.293, enteredText: "Editing comment ..."});
 
-  let demoRenderSongCurrent =
-    renderSong(exampleSong, songCurrentlyPlaying, Util.ignore);
+  let demoRenderSongCurrent = renderSong(exampleSong, songCurrentlyPlaying, Util.ignore);
 
   let initialSongs: list(song) = [
     exampleSong,
@@ -158,6 +121,5 @@ module Demo = {
     },
   ];
 
-  let demoRenderSongList =
-    renderSongList(initialSongs, songCurrentlyPlaying, Util.ignore);
+  let demoRenderSongList = renderSongList(initialSongs, songCurrentlyPlaying, Util.ignore);
 };

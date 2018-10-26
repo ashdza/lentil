@@ -78,6 +78,13 @@
 
 .song-comments {
     grid-area: song-comments;
+    display: grid;
+    grid-gap: 3px;
+    margin-bottom: 2px;
+    grid-template-columns: auto 4em;
+    grid-template-rows: repeat(auto);
+    background-color: lightgrey;
+    grid-template-areas: "comment-text    comment-position";
 }
 
 .comment-entry {
