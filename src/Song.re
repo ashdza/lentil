@@ -9,7 +9,7 @@ let renderSongHeader = (song: song, onSelect, style) =>
   <div className=style>
     <div className="song-title clickable" onClick=(_e => onSelect(song))> (Util.str(song.title)) </div>
     <div className="song-artist"> (Util.str(song.artist)) </div>
-    <div className="comments"> (Util.str("Comments: " ++ string_of_int(List.length(song.feedback)))) </div>
+    <div className="comment-count"> (Util.str("Comments: " ++ string_of_int(List.length(song.feedback)))) </div>
   </div>;
 
 let withinDelta = (a, b, ~delta) => abs_float(a -. b) <= delta;
@@ -17,20 +17,22 @@ let withinDelta = (a, b, ~delta) => abs_float(a -. b) <= delta;
 /* render list of comments for in-progress song, using current position */
 let renderCommentsRoll = (songInProgress: songInProgress, style) =>
   <div className=style>
-    <Util.Text label="Comment" style="bold" />
-    <Util.Text label="Loc" style="bold" />
+    <div className="comment"> <Util.Text label="Comment" style="bold" /> <Util.Text label="Loc" style="bold" /> </div>
     (
       songInProgress.song.feedback
       |> List.map((c: Types.comment) =>
-           [
+           <div className="comment">
              <Util.Text
                label=c.content
-               style=(withinDelta(c.location, songInProgress.position, ~delta=2.0) ? "comment highlight" : "comment")
-             />,
-             <Util.Text label=(Format.sprintf("%0.1f", c.location)) />,
-           ]
+               style=(
+                 withinDelta(c.location, songInProgress.position, ~delta=2.0) ?
+                   "comment-text highlight" : "comment-text"
+               )
+             />
+             <Util.Text label=(Format.sprintf("%0.1f", c.location)) style="comment-position" />
+           </div>
          )
-      |> Belt.List.flatten
+      /* |> Belt.List.flatten */
       |> Array.of_list
       |> ReasonReact.array
     )
@@ -44,7 +46,7 @@ let renderPlayerOnCurrentSong = (currentlyPlaying, send: action => unit, style) 
   <div className=style>
     <Util.Text style="italic" label="If a SoundCloud Ad blocks Play/Pause, click 'X' to close the Ad." />
     <Player url=s.url onProgress=((progress: Player.secs) => send(UpdatePosition(progress))) progressInterval=100 />
-    <Util.Text label=("Edit Comment @ Position: " ++ Format.sprintf("%0.1f", p)) style="bold" />
+    <Util.Text label=("Pause / Add Comment @ Location: " ++ Format.sprintf("%0.1f", p)) style="bold" />
     <textarea
       className="comment-entry"
       cols=60

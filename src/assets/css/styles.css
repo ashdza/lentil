@@ -78,12 +78,14 @@
 
 .song-comments {
     grid-area: song-comments;
+}
+
+.comment {
     display: grid;
     grid-gap: 3px;
     margin-bottom: 2px;
     grid-template-columns: auto 4em;
-    grid-template-rows: repeat(auto);
-    background-color: lightgrey;
+    grid-template-rows: auto;
     grid-template-areas: "comment-text    comment-position";
 }
 
@@ -91,7 +93,7 @@
     font-size: 1.0em;
 }
 
-.comments {
+.comment-count {
     align-items: center;
 }
 

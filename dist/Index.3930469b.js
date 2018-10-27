@@ -26667,7 +26667,7 @@ function renderSongHeader(song, onSelect, style) {
   }, Util.str(song[
   /* artist */
   2])), React.createElement("div", {
-    className: "comments"
+    className: "comment-count"
   }, Util.str("Comments: " + String(List.length(song[
   /* feedback */
   4])))));
@@ -26680,6 +26680,8 @@ function withinDelta(a, b, delta) {
 function renderCommentsRoll(songInProgress, style) {
   return React.createElement("div", {
     className: style
+  }, React.createElement("div", {
+    className: "comment"
   }, ReasonReact.element(undefined, undefined, Util.Text[
   /* make */
   1]("Comment", "bold",
@@ -26688,51 +26690,46 @@ function renderCommentsRoll(songInProgress, style) {
   /* make */
   1]("Loc", "bold",
   /* array */
-  [])), $$Array.of_list(Belt_List.flatten(List.map(function (c) {
+  []))), $$Array.of_list(List.map(function (c) {
     var match = withinDelta(c[
     /* location */
     0], songInProgress[
     /* position */
     1], 2.0);
-    return (
-      /* :: */
-      Block.simpleVariant("::", [ReasonReact.element(undefined, undefined, Util.Text[
-      /* make */
-      1](c[
-      /* content */
-      1], match ? "comment highlight" : "comment",
-      /* array */
-      [])),
-      /* :: */
-      Block.simpleVariant("::", [ReasonReact.element(undefined, undefined, Util.Text[
-      /* make */
-      1](Curry._1(Format.sprintf(
-      /* Format */
-      Block.simpleVariant("Format", [
-      /* Float */
-      Block.variant("Float", 8, [
-      /* Float_f */
-      0,
-      /* Lit_padding */
-      Block.variant("Lit_padding", 0, [
-      /* Right */
-      1, 0]),
-      /* Lit_precision */
-      Block.simpleVariant("Lit_precision", [1]),
-      /* End_of_format */
-      0]), "%0.1f"])), c[
-      /* location */
-      0]), undefined,
-      /* array */
-      [])),
-      /* [] */
-      0])])
-    );
+    return React.createElement("div", {
+      className: "comment"
+    }, ReasonReact.element(undefined, undefined, Util.Text[
+    /* make */
+    1](c[
+    /* content */
+    1], match ? "comment-text highlight" : "comment-text",
+    /* array */
+    [])), ReasonReact.element(undefined, undefined, Util.Text[
+    /* make */
+    1](Curry._1(Format.sprintf(
+    /* Format */
+    Block.simpleVariant("Format", [
+    /* Float */
+    Block.variant("Float", 8, [
+    /* Float_f */
+    0,
+    /* Lit_padding */
+    Block.variant("Lit_padding", 0, [
+    /* Right */
+    1, 0]),
+    /* Lit_precision */
+    Block.simpleVariant("Lit_precision", [1]),
+    /* End_of_format */
+    0]), "%0.1f"])), c[
+    /* location */
+    0]), "comment-position",
+    /* array */
+    [])));
   }, songInProgress[
   /* song */
   0][
   /* feedback */
-  4]))));
+  4])));
 }
 
 function renderPlayerOnCurrentSong(currentlyPlaying, send, style) {
@@ -26757,7 +26754,7 @@ function renderPlayerOnCurrentSong(currentlyPlaying, send, style) {
   /* array */
   [])), ReasonReact.element(undefined, undefined, Util.Text[
   /* make */
-  1]("Edit Comment @ Position: " + Curry._1(Format.sprintf(
+  1]("Pause / Add Comment @ Location: " + Curry._1(Format.sprintf(
   /* Format */
   Block.simpleVariant("Format", [
   /* Float */
@@ -45940,7 +45937,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52265" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50320" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
