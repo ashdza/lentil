@@ -12,15 +12,16 @@ let renderSongHeader = (song: song, onSelect, style) =>
     <div className="comment-count"> (Util.str("Comments: " ++ string_of_int(List.length(song.feedback)))) </div>
   </div>;
 
-let withinDelta = (a, b, ~delta) => abs_float(a -. b) <= delta;
-
 /* render list of comments for in-progress song, using current position */
-let renderCommentsRoll = (songInProgress: songInProgress, style) =>
+let renderCommentsRoll = (songInProgress: songInProgress, style) => {
+  /* boolean helper to highlight a comment within +/- some Delta */
+  let withinDelta = (a, b, ~delta) => abs_float(a -. b) <= delta;
+
   <div className=style>
     <div className="comment"> <Util.Text label="Comment" style="bold" /> <Util.Text label="Loc" style="bold" /> </div>
     (
       songInProgress.song.feedback
-      |> List.map((c: Types.comment) =>
+      |> List.map((c: comment) =>
            <div className="comment">
              <Util.Text
                label=c.content
@@ -32,11 +33,11 @@ let renderCommentsRoll = (songInProgress: songInProgress, style) =>
              <Util.Text label=(Format.sprintf("%0.1f", c.location)) style="comment-position" />
            </div>
          )
-      /* |> Belt.List.flatten */
       |> Array.of_list
       |> ReasonReact.array
     )
   </div>;
+};
 
 /* render the audio-player + comment-editor on in-progress song.
    Takes a send action for the 3 messages:
@@ -58,8 +59,8 @@ let renderPlayerOnCurrentSong = (currentlyPlaying, send: action => unit, style) 
   </div>;
 };
 
-/* Given song + in-progress option(song), render song appropriately */
-let renderSong = (song: Types.song, currentlyPlaying, send: action => unit) => {
+/* Given any song s + in-progress option(song), render s appropriately (with or without Player) */
+let renderSong = (song: song, currentlyPlaying, send: action => unit) => {
   let header = renderSongHeader(song, s => send(Select(s)), "song-header");
   let (player, scroll) =
     switch (currentlyPlaying) {
@@ -77,9 +78,9 @@ let renderSongList = (songList, currentlyPlaying, send) =>
   List.map(s => renderSong(s, currentlyPlaying, send), songList) |> Array.of_list |> ReasonReact.array;
 
 /* update a song with new feedback at some location */
-let addFeedbackToSong = (content, loc, song: Types.song) => {
-  let c: Types.comment = {location: loc, content};
-  let compareComments = (c1: Types.comment, c2: Types.comment) => Pervasives.compare(c1.location, c2.location);
+let addFeedbackToSong = (content, loc, song: song) => {
+  let c: comment = {location: loc, content};
+  let compareComments = (c1: comment, c2: comment) => Pervasives.compare(c1.location, c2.location);
   {...song, feedback: Belt.List.add(song.feedback, c) |> List.sort(compareComments)};
 };
 

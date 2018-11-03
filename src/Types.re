@@ -1,5 +1,7 @@
 [%%debugger.chrome];
 
+/* These types WILL be reflected in the backend database */
+
 type commentLocation = float;
 
 type comment = {
@@ -14,6 +16,9 @@ type song = {
   url: string,
   feedback: list(comment),
 };
+
+/* These types will NOT be reflected in the backend database,
+   and are only for the front-end user interaction */
 
 type songInProgress = {
   song,

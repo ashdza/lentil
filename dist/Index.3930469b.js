@@ -26673,11 +26673,11 @@ function renderSongHeader(song, onSelect, style) {
   4])))));
 }
 
-function withinDelta(a, b, delta) {
-  return Math.abs(a - b) <= delta;
-}
-
 function renderCommentsRoll(songInProgress, style) {
+  var withinDelta = function withinDelta(a, b, delta) {
+    return Math.abs(a - b) <= delta;
+  };
+
   return React.createElement("div", {
     className: style
   }, React.createElement("div", {
@@ -26902,7 +26902,6 @@ Block.localModule(["exampleSong", "demoSongHeader", "demoRenderSongNotCurrent", 
 var Player = 0;
 exports.Player = Player;
 exports.renderSongHeader = renderSongHeader;
-exports.withinDelta = withinDelta;
 exports.renderCommentsRoll = renderCommentsRoll;
 exports.renderPlayerOnCurrentSong = renderPlayerOnCurrentSong;
 exports.renderSong = renderSong;
@@ -45937,7 +45936,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54497" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65119" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
