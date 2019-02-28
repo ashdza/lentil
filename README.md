@@ -1,6 +1,6 @@
 # lentil
 
-A musician's feedback service.
+A musician's feedback service. I keep some notes on this project on my blog at https://ashdza.github.io/blog/.
 
 ## Overview
 
@@ -9,7 +9,6 @@ Musicians submit recordings of performances and receive pointed feedback from ot
 The core idea is summarized by this interaction:
 ![](src/assets/images/sequence-diagram.png)
 
-I keep some notes on this project on my blog at https://ashdza.github.io/blog/.
 
 ## Demo
 
