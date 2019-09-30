@@ -26961,7 +26961,7 @@ function make(initialSongs, _) {
         className: "app-title"
       }, Util.str("Lentil")), React.createElement("div", {
         className: "app-subtitle"
-      }, Util.str("Making Musicians Better"))), React.createElement("div", {
+      }, Util.str("For Students of Music"))), React.createElement("div", {
         className: "app-menu"
       }, ReasonReact.element(undefined, undefined, Util.Text[
       /* make */
@@ -45936,7 +45936,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65119" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50106" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
