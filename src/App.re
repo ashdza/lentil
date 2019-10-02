@@ -46,7 +46,7 @@ let make = (~initialSongs: list(song), _children) => {
     <div className="app">
       <div className="app-header">
         <div className="app-title"> (Util.str("Lentil")) </div>
-        <div className="app-subtitle"> (Util.str("For Students of Music")) </div>
+        <div className="app-subtitle"> (Util.str("Musicians Helping Musicians")) </div>
       </div>
       <div className="app-menu">
         <Util.Text label="MENU" />

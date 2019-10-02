@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "bs-css": "^7.2.0",
+    "bs-fetch": "^0.5.0",
     "re-react-player": "^0.1.2",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",

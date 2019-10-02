@@ -26,7 +26,8 @@
   "bs-dependencies": [
     "reason-react",
     "re-react-player",
-    "bs-css"
+    "bs-css",
+    "bs-fetch"
   ],
   "refmt": 3
 }
